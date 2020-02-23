@@ -1,24 +1,29 @@
 /* Set font to font family "Patrick Hand" */
+
 .font-Bitter {
     font-family: 'Bitter';
 }
+
+
 /*
 .form-control  {
   max-width: 25%;
 }
 */
 
+
 /* Abstand zwischen den Navigationsbuttons vergrößern */
 
-.navbar-nav > li{
-  padding-left:0px;
-  padding-right:25px;
+.navbar-nav > li {
+    padding-left: 0px;
+    padding-right: 25px;
 }
+
 
 /* Den Button beim Datei-Upload von "Browse" auf "Hochladen" ändern */
 
 .custom-file-input ~ .custom-file-label::after {
-    content: "hochladen";
+    content: "Datei auswählen";
 }
 
 
@@ -29,6 +34,8 @@ en: "Browse",
 de: "Hallo"
 );
 */
+
+
 /*
 .custom-file-text: (
   en: "Browse",

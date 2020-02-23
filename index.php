@@ -3,10 +3,14 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" 
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" 
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" 
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" 
+          crossorigin="anonymous">
 
     
     <!-- Zusätzliches CSS -->
@@ -21,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css?family=Bitter" rel="stylesheet"> 
     
   </head>
-  <body class="font-Bitter">
+  <body class="font-Bitter bg-light text-dark">
   
   <?php
   # <!-- Navigationsleiste -->
@@ -29,7 +33,7 @@
   ?>
   
   
-  <div class="container-fluid">
+  <div class="container">
 	<h1 class="pt-3">Letzte Updates</h1>
 	
 	<!-- Responsive Tabelle mit Padding 3 -->
