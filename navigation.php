@@ -27,8 +27,8 @@
                    aria-disabled="true">Filter</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link disabled" 
-                   href="#">Buchungen</a>
+                <a class="nav-link" 
+                   href="buchungen.php">Buchungen</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link disabled" 
