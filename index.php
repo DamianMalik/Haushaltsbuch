@@ -33,11 +33,11 @@
   ?>
   
   
-  <div class="container">
+  <div class="container-fluid">
 	<h1 class="pt-3">Letzte Updates</h1>
 	
 	<!-- Responsive Tabelle mit Padding 3 -->
-	<div class="table-responsive pt-3">
+	<div class="table-responsive pt-3 h4">
 		<table class="table table-hover">
 			<thead class="table-dark">
 				<tr>

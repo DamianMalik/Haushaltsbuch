@@ -29,7 +29,7 @@
     
 
    
-    <div class="container">
+    <div class="container-fluid	">
  
     <h1 class="pt-3">Buchungen</h1>  
  
@@ -63,7 +63,7 @@
       
    
       <!-- Responsive Tabelle mit Padding 3 -->
-      <div class="table-responsive pt-3">
+      <div class="table-responsive pt-3 h5">
  
         <table class="table table-hover">
   <thead class="thead-dark">

@@ -39,7 +39,7 @@
               action="import-02.php" 
               enctype="multipart/form-data">
             <!--<div class="custom-file w-50"> -->
-            <div class="custom-file">
+            <div class="custom-file h4">
                 <input type="file" 
                        class="custom-file-input" 
                        id="Dateiupload" 
@@ -51,7 +51,7 @@
             </div>
             <!-- <div class="pt-3 w-50"> -->
             <div class="pt-3">
-                <button class="btn btn-primary float-right" 
+                <button class="btn-lg btn-primary float-right" 
                         type="submit">Hochladen</button>
             </div>
         </form>
