@@ -34,9 +34,9 @@
 	?>
         <div class="container-fluid	">
 
-            <h1 class="pt-3">Buchungen</h1>
+            <h1 class="pt-3 pb-3">Buchungen</h1>
 
-            <!-- mb-3 etwas Abstand nach unten -->
+            <!-- mb-3 etwas Abstand nach unten 
             <div class="input-group mb-3">
                 <a href="#" class="btn btn-dark  active" role="button" aria-pressed="true">Alles</a>
                 <a href="#" class="btn btn-dark ml-1  active" role="button" aria-pressed="true">5 Jahre</a>
@@ -50,7 +50,46 @@
                 <div class="input-group-append">
                     <span class="btn btn-dark" id="basic-addon2">Suche</span>
                 </div>
-            </div>
+            </div> -->
+<!---------------------------------------------------------------------->
+
+      
+			<div class="btn-group btn-group-lg pb-3">
+			<div class="btn-group btn-group-lg">
+			<button type="button" class="btn btn-dark dropdown-toggle" data-toggle="dropdown">Konto</button>
+			<div class="dropdown-menu">
+			<a class="dropdown-item" href="#">Alle</a>
+			<a class="dropdown-item" href="#">Konto A</a>
+			<a class="dropdown-item" href="#">Konto B</a>
+			</div>
+			</div> 
+
+
+			<div class="btn-group btn-group-lg">
+			<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">Zeitraum
+			</button>
+			<div class="dropdown-menu">
+			<a class="dropdown-item" href="#">3 Monate</a>
+			<a class="dropdown-item" href="#">6 Monate</a>
+			<a class="dropdown-item" href="#">2020</a>
+			<a class="dropdown-item" href="#">2019</a>
+			<a class="dropdown-item" href="#">2018</a>
+			<a class="dropdown-item" href="#">2017</a>
+			</div>
+			</div>      
+		
+      
+
+
+			<input type="text" class="form-control form-control-lg ml-2" placeholder="Suchbegriff" aria-label="Suche" aria-describedby="basic-addon1">
+			<div class="input-group-append">
+				<span class="btn btn-dark btn-lg" id="basic-addon2">Suche</span>
+			</div>
+
+			</div>
+
+
+<!----------------------------------------------------------->      
 
             <!-- Responsive Tabelle mit Padding 3 -->
             <div class="table-responsive pt-3 h5">
@@ -58,9 +97,9 @@
                 <table class="table table-hover">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">Bk.</th>
+                            <th scope="col">Bank</th>
                             <th scope="col">Datum</th>
-                            <th scope="col">Typ</th>
+                            <th scope="col">Buchungstyp</th>
                             <th scope="col">Auftraggeber / Empfänger</th>
                             <th scope="col">Verwendungszweck</th>
                             <th scope="col">Betrag</th>
