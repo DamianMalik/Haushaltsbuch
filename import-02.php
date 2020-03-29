@@ -35,7 +35,7 @@
         <!-- <div class="container-fluid"> -->
         <div class="container">
 
-            <h3 class="pt-3">Dateiupload</h3>
+            <h3 class="pt-3 pb-3">Dateiupload</h3>
 
             <!-- mb-3 etwas Abstand nach unten -->
 
@@ -47,7 +47,7 @@
 
                     <tbody>
                         <tr>
-                            <td>letzte Upload Nummer:</td>
+                            <td style="width: 50%">letzte Upload Nummer:</td>
                             <td>1102</td>
                         </tr>
                         <tr>
@@ -91,7 +91,7 @@
 
                     <tbody>
                         <tr>
-                            <td>Dateiname:</td>
+                            <td style="width: 50%">Dateiname:</td>
                             <td>skuxjxue.csv</td>
                         </tr>
                         <tr>
