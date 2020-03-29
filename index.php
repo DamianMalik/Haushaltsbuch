@@ -29,7 +29,7 @@
   
   <?php
   # Verbindungsaufbau zur Datenbank
-  include 'Datenbank.php';
+  include 'datenbank.php';
   
   # <!-- Navigationsleiste -->
   include 'navigation.php';
