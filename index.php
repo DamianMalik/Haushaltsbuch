@@ -28,8 +28,34 @@
   <body class="font-Bitter bg-light text-dark">
   
   <?php
+  # Verbindungsaufbau zur Datenbank
+  include 'Datenbank.php';
+  
   # <!-- Navigationsleiste -->
   include 'navigation.php';
+  
+  
+  
+  
+# **********************************************************
+# ***            Liste der letzten Updates               ***
+# **********************************************************
+$DBabfrage = "SELECT ba.`id`, 
+                     ba.`Inhaber`, 
+                     ba.`Bankname`, 
+                     ba.`Kontoname`,
+                        (SELECT  MAX(`Timestamp`) 
+                        FROM `Buchungen` bu
+                        WHERE bu.`BankID` = ba.`id` ) AS `Timestamp`,
+                        
+                        (SELECT  DATEDIFF(CURDATE(), MAX(`Timestamp`)) 
+                        FROM `Buchungen` bu
+                        WHERE bu.`BankID` = ba.`id` ) AS `Tage_seit_Update`
+                        
+                     FROM `Banken` ba";
+$DBausgabe = $pdo->query($DBabfrage);
+  
+  
   ?>
   
   
@@ -37,35 +63,50 @@
 	<h1 class="pt-3">Letzte Updates</h1>
 	
 	<!-- Responsive Tabelle mit Padding 3 -->
-	<div class="table-responsive pt-3 h4">
+	<div class="table-responsive pt-3 h5">
 		<table class="table table-hover">
-			<thead class="table-dark">
+			<thead class="thead-dark">
 				<tr>
-					<th scope="col">Inhaber</th>
 					<th scope="col">Bank</th>
+					<th scope="col">Inhaber</th>
 					<th scope="col">Konto</th>
 					<th scope="col">letztes Update</th>
 				</tr>
 			</thead>
 			<tbody>
+				<?php
+				foreach($DBausgabe as $zeile) { 
+					?>
 				<tr>
-					<td>ABC</td>
-					<td>Bank A</td>
-					<td>Konto 1</td>
-					<td>30.11.2019</td>
+					
+					<?php 
+						echo "<td>" . $zeile['Bankname'] . "</td>";
+						echo "<td>" . $zeile['Inhaber'] . "</td>";
+						echo "<td>" . $zeile['Kontoname'] . "</td>";
+						if (!is_null($zeile['Timestamp'])) {
+							# Ausgabe des Datums
+							$farbe = '#799134'; // grüne Farbe
+							if ($zeile['Tage_seit_Update'] > 20) $farbe = '#BAB638'; // hellgrüne Farbe
+							if ($zeile['Tage_seit_Update'] > 40) $farbe = '#FAC337'; // gelbe Farbe
+							if ($zeile['Tage_seit_Update'] > 60) $farbe = '#E6922C'; // orangene Farbe
+							if ($zeile['Tage_seit_Update'] > 80) $farbe = '#9E3129'; // rote Farbe
+							echo "<td>" 
+								. date('d.m.Y', strtotime($zeile['Timestamp'])) 
+								. " (vor "
+								. "<font color='" . $farbe . "'>" 
+								. $zeile['Tage_seit_Update']
+								. "</font>"
+								. " Tagen)"
+								. "</td>";
+							} else {
+							# Ausgabe leeres Feld
+							echo "<td>" . "" . "</td>";
+						}
+					?>
 				</tr>
-				<tr>
-					<td>ABC</td>
-					<td>Bank A</td>
-					<td>Konto 2</td>
-					<td>31.12.2019</td>
-				</tr>
-				<tr>
-					<td>ABC</td>
-					<td>Bank B</td>
-					<td>Konto 1</td>
-					<td>31.01.2020</td>
-				</tr>
+				<?php 
+				} // Ende der foreach-Schleife 
+				?>
 			</tbody>
 		</table>
 	</div>
