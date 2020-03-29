@@ -34,30 +34,20 @@
   # <!-- Navigationsleiste -->
   include 'navigation.php';
   
-  
-  
-  
-# **********************************************************
-# ***            Liste der letzten Updates               ***
-# **********************************************************
-$DBabfrage = "SELECT ba.`id`, 
-                     ba.`Inhaber`, 
-                     ba.`Bankname`, 
-                     ba.`Kontoname`,
-                        (SELECT  MAX(`Timestamp`) 
-                        FROM `Buchungen` bu
-                        WHERE bu.`BankID` = ba.`id` ) AS `Timestamp`,
-                        
-                        (SELECT  DATEDIFF(CURDATE(), MAX(`Timestamp`)) 
-                        FROM `Buchungen` bu
-                        WHERE bu.`BankID` = ba.`id` ) AS `Tage_seit_Update`
-                        
-                     FROM `Banken` ba";
-$DBausgabe = $pdo->query($DBabfrage);
-  
-  
+  # ***  Datenbankabfrage: Alle Konten und Datum des letzten Updates ***
+  $DBabfrage = "SELECT ba.`id`, 
+                       ba.`Inhaber`, 
+                       ba.`Bankname`, 
+                       ba.`Kontoname`,
+                       (SELECT  MAX(`Timestamp`) 
+                                FROM `Buchungen` bu
+                                WHERE bu.`BankID` = ba.`id` ) AS `Timestamp`,
+                       (SELECT  DATEDIFF(CURDATE(), MAX(`Timestamp`)) 
+                                FROM `Buchungen` bu
+                                WHERE bu.`BankID` = ba.`id` ) AS `Tage_seit_Update`
+                       FROM `Banken` ba";
+  $DBausgabe = $pdo->query($DBabfrage);
   ?>
-  
   
   <div class="container-fluid">
 	<h1 class="pt-3">Letzte Updates</h1>
