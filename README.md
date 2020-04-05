@@ -4,4 +4,3 @@
 # Haushaltsbuch
 
 In der Entwicklung. 
-
