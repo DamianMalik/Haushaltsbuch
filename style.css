@@ -27,6 +27,12 @@
 }
 
 
+/* Farbe von horizontale Linie in Tabelle */
+.table td  {
+	border-top: 1px solid #343a40;
+}
+
+
 /*
 -- funktioniert nicht
 .custom-file-text: (
