@@ -27,6 +27,12 @@
 }
 
 
+.dropdown-menu.show {
+	/* background-color: #6c757d; */
+	background-color: #dee2e6; 
+}
+
+
 /*
 -- funktioniert nicht
 .custom-file-text: (
