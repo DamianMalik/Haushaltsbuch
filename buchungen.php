@@ -24,6 +24,16 @@
     <link href="https://fonts.googleapis.com/css?family=Bitter" 
           rel="stylesheet">
 
+ 
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" 
+	        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" 
+	        crossorigin="anonymous"></script>
+ 
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$(".spinner-border").hide();
+	});
+	</script>
 </head>
 
 <body class="font-Bitter bg-light text-dark">
@@ -176,9 +186,9 @@
 						. $Suchbegriff . "' )
 				ORDER BY a.`Buchungsdatum` DESC, 
 						a.`Datensatznummer` DESC, 
-						a.`Datensatznummer` DESC
-				LIMIT 30; ";
+						a.`Datensatznummer` DESC; ";
 	$DBausgabe = $pdo->query($DBabfrage);
+	#LIMIT 30; 
 	?>
 	<?php 
 	# **********************************************************
@@ -188,14 +198,25 @@
 	# **********************************************************
 	?>
 		<div class="container-fluid	">
-            <h1 class="pt-3">Buchungen</h1>
-			<?php 
-			if ($strBankID_aus_GET != 'X') {
-				echo '<p class="h4 pb-3">' . $arrBankID_aus_DB[$strBankID_aus_GET] . " | " . $strZeitraum_aus_GET . '</p>';
-			} else {
-				echo '<p class="h4 pb-3">Alle Konten</p>';
-			}
-			echo $DBabfrage . "<br>"; 
+            <div class="pt-3">
+				<span class="h1">Buchungen</span>
+				<?php 
+				if ($strBankID_aus_GET != 'X') {
+					echo '<span class="badge badge-pill badge-info ml-2">' . $arrBankID_aus_DB[$strBankID_aus_GET] . '</span>';
+				} else {
+					echo '<span class="badge badge-pill badge-info ml-2">Alle Konten</span>';
+				}
+				?>
+				<div class="spinner-border text-info ml-2" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+            </div>
+			
+			<?php
+			# <h1 class="pt-3">Buchungen<span class="badge badge-info mr-2">Hallo</span></h1>
+			# echo $DBabfrage . "<br>"; 
+			echo "<br>";
+			
 			
 			# **********************************************************
 			# ***               Filter-Buttons                       ***
@@ -204,17 +225,23 @@
 			###### HIER FORMULAR mit <FORM> beginnen ###############
 			?>
 			
-			<div class="btn-group btn-group-lg pb-3">
+			<div class="btn-group btn-group-lg pt-3 pb-3">
 				<div class="btn-group btn-group-lg">
 					<button type="submit" 
 							class="btn btn-dark dropdown-toggle" 
-							data-toggle="dropdown">Konto</button>
+							data-toggle="dropdown">Konto
+						<?php echo '<span class="badge badge-info">';
+						if ($strBankID_aus_GET  != 'X') {
+							echo $strBankID_aus_GET;
+						}
+						echo '</span>'; ?>
+					</button>
 					<div class="dropdown-menu">
-						<a class="dropdown-item" href="/buchungen.php">Alle Konten</a>
+						<a class="dropdown-item" 
+						   href="/buchungen.php">
+						   <span class="badge badge-info mr-2">⚪</span>Alle Konten</a>
 						<?php
 						foreach($arrBankID_aus_DB as $index2 => $bankname) {
-							#$strZeitraum_aus_GET
-							# $URL_Ziel = "/buchungen.php?Bank=" . $index2;
 							if ($strZeitraum_aus_GET != 'X') {
 								$URL_Ziel = "/buchungen.php?Bank=" . $index2 . "&Zeitraum=" . $strZeitraum_aus_GET;
 							} else {
@@ -223,15 +250,11 @@
 							echo '<a class="dropdown-item" href="' 
 								. $URL_Ziel 
 								. '">' 
+								. '<span class="badge badge-info mr-2">' 
+								. $index2 
+								. '</span>'
 								. $bankname
 					            . '</a>';
-							/*
-							echo '<a class="dropdown-item" href="/buchungen.php?'
-								. 'Bank=' . $index2 
-								. '">' 
-								. $bankname
-					            . '</a>';
-					            */
 						}
 						?>
 						</a>
@@ -243,9 +266,17 @@
 					<button type="button" 
 							class="btn btn-secondary dropdown-toggle" 
 							data-toggle="dropdown">Zeitraum
+							<?php echo '<span class="badge badge-info">'; 
+										if ($strZeitraum_aus_GET != 'X') {
+											echo $strZeitraum_aus_GET;
+										}
+							           echo '</span>'; ?>
 					</button>
 					<div class="dropdown-menu">
 						<?php
+						$URL_Ziel = "/buchungen.php?Bank=" . $strBankID_aus_GET . "&Zeitraum=X";
+						echo '<a class="dropdown-item" href="' . $URL_Ziel .  '">Alle Buchungen</a>';
+						
 						$URL_Ziel = "/buchungen.php?Bank=" . $strBankID_aus_GET . "&Zeitraum=3M";
 						echo '<a class="dropdown-item" href="' . $URL_Ziel .  '">3 Monate</a>';
 						$URL_Ziel = "/buchungen.php?Bank=" . $strBankID_aus_GET . "&Zeitraum=6M";
@@ -257,15 +288,7 @@
 							$URL_Ziel = "/buchungen.php?Bank=" . $strBankID_aus_GET . "&Zeitraum=" . $Jahr;
 							echo '<a class="dropdown-item" href="' . $URL_Ziel .  '">' . $Jahr . '</a>';
 						}
-						/*
-						<a class="dropdown-item" href="#">2020</a>
-						<a class="dropdown-item" href="#">2019</a>
-						<a class="dropdown-item" href="#">2018</a>
-						<a class="dropdown-item" href="#">2017</a>
-						*/
 						?>
-						
-						
 					</div>
 				</div>      
 				
