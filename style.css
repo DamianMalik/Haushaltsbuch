@@ -27,9 +27,11 @@
 }
 
 
-/* Farbe von horizontale Linie in Tabelle */
-.table td  {
-	border-top: 1px solid #343a40;
+
+.dropdown-menu.show {
+	/* background-color: #6c757d; */
+	background-color: #dee2e6; 
+
 }
 
 
