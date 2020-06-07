@@ -221,8 +221,6 @@
 			# **********************************************************
 			# ***               Filter-Buttons                       ***
 			# **********************************************************
-			
-			###### HIER FORMULAR mit <FORM> beginnen ###############
 			?>
 			
 			<div class="btn-group btn-group-lg pt-3 pb-3">
@@ -292,17 +290,19 @@
 					</div>
 				</div>      
 				
+				<?php
+				###### HIER FORMULAR mit <FORM> beginnen ###############
+				?>
 				
 				<input type="text" 
 						class="form-control form-control-lg ml-2" 
 						placeholder="Suchbegriff" 
 						aria-label="Suche" 
 						aria-describedby="basic-addon1">
-				<div class="input-group-append">
-					<span class="btn btn-dark btn-lg" id="basic-addon2">Suche</span>
-				</div>
+					<div class="input-group-append">
+						<span class="btn btn-dark btn-lg" id="basic-addon2">Suche</span>
+					</div>
 			</div>
-
 			<?php
 			###### HIER FORMULAR mit <FORM> beginnen ###############
 			?>
@@ -315,7 +315,9 @@
 			# **********************************************************
 			?>
             <!-- Responsive Tabelle mit Padding 3 -->
-            <div class="table-responsive pt-3 h6">
+			<!-- <div class="table-responsive pt-3 h6"> -->
+            <div>
+            <div class="table-responsive-md">
                 <table class="table table-hover">
                     <thead class="thead-dark">
                         <tr>
@@ -358,6 +360,7 @@
 					?>
 					</tbody>
 				</table>
+			</div>
 			</div>
 	<?php
 	# **********************************************************
