@@ -409,19 +409,19 @@ $DBausgabe = $pdo->query($DBabfrage);
 		<table class="table table-hover">
 			<thead class="thead-dark">
 				<tr>
-					<th scope="col">Bank</th>
-					<th scope="col">Datum</th>
-					<th scope="col">Buchungstyp</th>
-					<th scope="col">Auftraggeber / Empfänger</th>
-					<th scope="col">Verwendungszweck</th>
-					<th scope="col">Betrag</th>
+					<th style="width: 10%">Bank</th>
+					<th style="width: 10%">Datum</th>
+					<th style="width: 20%">Buchungstyp</th>
+					<th style="width: 20%">Auftraggeber / Empfänger</th>
+					<th style="width: 30%">Verwendungszweck</th>
+					<th style="width: 10%" class="text-right">Betrag</th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php
 				foreach($DBausgabe as $zeile) { 
 					echo '<tr>';
-						echo '<td scope="row">';
+						echo '<td>';
 							echo $zeile['Bank'];
 						echo '</td>';
 						   echo '<td>'; 
@@ -436,7 +436,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 						   echo '<td>';
 							echo $zeile['Verwendungszweck'];
 						echo '</td>';
-						
 						echo '<td class="text-right">';
 							if ($zeile['Betrag'] > 0) $strFarbe = '#00B233'; // grüne Farbe
 							if ($zeile['Betrag'] < 0) $strFarbe = '#FF0000'; // rote Farbe

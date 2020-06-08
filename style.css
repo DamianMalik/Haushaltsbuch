@@ -1,19 +1,10 @@
-/* Set font to font family "Patrick Hand" */
-
+/* Schriftfont "Bitter" anwenden */
 .font-Bitter {
     font-family: 'Bitter';
 }
 
 
-/*
-.form-control  {
-  max-width: 25%;
-}
-*/
-
-
 /* Abstand zwischen den Navigationsbuttons vergrößern */
-
 .navbar-nav > li {
     padding-left: 0px;
     padding-right: 25px;
@@ -21,30 +12,18 @@
 
 
 /* Den Button beim Datei-Upload von "Browse" auf "Hochladen" ändern */
-
 .custom-file-input ~ .custom-file-label::after {
     content: "Datei auswählen";
 }
 
 
+/* Die Hintergrundfarbe vom Dropdown-Menü ändern */
 .dropdown-menu.show {
-	/* background-color: #6c757d; */
-	background-color: #dee2e6; 
+background-color: #dee2e6; 
 }
 
 
-/*
--- funktioniert nicht
-.custom-file-text: (
-en: "Browse",
-de: "Hallo"
-);
-*/
+/* Fest definierte Spaltenbreite in der Tabelle anwenden */
+table { table-layout: fixed; }
+table th, table td { overflow: hidden; }
 
-
-/*
-.custom-file-text: (
-  en: "Browse",
-  de: "Hallo2"
-);
-*/
