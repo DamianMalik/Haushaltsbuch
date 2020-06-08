@@ -57,10 +57,10 @@
 		<table class="table table-hover">
 			<thead class="thead-dark">
 				<tr>
-					<th scope="col">Bank</th>
-					<th scope="col">Inhaber</th>
-					<th scope="col">Konto</th>
-					<th scope="col">letztes Update</th>
+					<th style="width: 20%">Bank</th>
+					<th style="width: 20%">Inhaber</th>
+					<th style="width: 30%">Konto</th>
+					<th style="width: 30%">letztes Update</th>
 				</tr>
 			</thead>
 			<tbody>
