@@ -69,13 +69,22 @@ if(isset($_POST['Zeitraum'])) {
 } 
 
 # Auslesen der Formulareingabe 'Suchbegriff'
+# Damit htmlentities die Umlaute nicht umwandelt, ist die Option ENT_XML1 erforderlich
 if(isset($_POST['Suchbegriff'])) {
-	$Suchbegriff = preg_replace('![^0-9a-zA-ZäöüÄÖÜ\ ]!', '', strip_tags(htmlentities($_POST['Suchbegriff'])));
+	$strSuchbegriff_aus_POST = preg_replace('![^0-9a-zA-ZäöüÄÖÜ\ ]!', '', strip_tags(htmlentities($_POST['Suchbegriff'], ENT_XML1 )));
 } else {
-	$Suchbegriff = "";
+	$strSuchbegriff_aus_POST = "";
 } 
 # Für die LIKE-Bedingungen wird der Suchbegriff verfeinert
-$Suchbegriff = "%" . $Suchbegriff . "%";
+# $Suchbegriff = "%" . $Suchbegriff . "%";
+# $strSuchbegriff_SQL = "%" . $strSuchbegriff_aus_POST . "%";
+# Nur Suchbegriffe mit 3 oder mehr Zeichen werden verarbeitet
+if (strlen($strSuchbegriff_aus_POST) >= '3') {
+	$strSuchbegriff_SQL = "%" . $strSuchbegriff_aus_POST . "%";
+} else {
+	$strSuchbegriff_aus_POST = "";
+	$strSuchbegriff_SQL = "";
+}
 
 
 # **********************************************************
@@ -158,11 +167,13 @@ $DBabfrage = "SELECT CONCAT(b.`Bankname`, ' ', b.`Inhaber`, ' ', b.`Kontoname`) 
 				$DBabfrage .= "AND   a.`BankID` = '" .  $strBankID_aus_POST . "' ";
 			}
 $DBabfrage .= $sqlAND; 
+if ($strSuchbegriff_SQL != '') {
+	$DBabfrage .= "	AND   ( a.`Verwendungszweck` LIKE '" 
+							. $strSuchbegriff_SQL 
+							. "' OR    a.`AuftraggeberEmpfaenger` LIKE '" 
+							. $strSuchbegriff_SQL . "' )";
+}
 $DBabfrage .= "
-			AND   ( a.`Verwendungszweck` LIKE '" 
-					. $Suchbegriff 
-					. "' OR    a.`AuftraggeberEmpfaenger` LIKE '" 
-					. $Suchbegriff . "' )
 			ORDER BY a.`Buchungsdatum` DESC, 
 					a.`Datensatznummer` DESC, 
 					a.`Datensatznummer` DESC; ";
@@ -180,14 +191,18 @@ $DBausgabe = $pdo->query($DBabfrage);
 	<div class="pt-3">
 		<span class="h1">Buchungen</span>
 		<?php 
+		echo '<span class="badge badge-pill badge-info ml-2">';
 		if ($strBankID_aus_POST != 'X') {
-			echo '<span class="badge badge-pill badge-info ml-2">' 
-				. $arrBankID_aus_DB[$strBankID_aus_POST] 
-				. '</span>';
-			} else {
-				echo '<span class="badge badge-pill badge-info ml-2">'
-					. 'Alle Konten</span>';
-			}
+			echo $arrBankID_aus_DB[$strBankID_aus_POST]; 
+		} else {
+			echo 'Alle Konten';
+		}
+		echo '</span>';
+		
+		echo '<span class="badge badge-pill badge-warning ml-2">';
+			echo $strSuchbegriff_aus_POST;
+		echo '</span>';
+		
 		?>
 		<div class="spinner-border text-info ml-2" role="status">
 			<span class="sr-only">Loading...</span>
