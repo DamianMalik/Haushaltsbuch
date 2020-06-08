@@ -198,11 +198,9 @@ $DBausgabe = $pdo->query($DBabfrage);
 			echo 'Alle Konten';
 		}
 		echo '</span>';
-		
 		echo '<span class="badge badge-pill badge-warning ml-2">';
 			echo $strSuchbegriff_aus_POST;
 		echo '</span>';
-		
 		?>
 		<div class="spinner-border text-info ml-2" role="status">
 			<span class="sr-only">Loading...</span>
@@ -244,11 +242,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 				<div class="dropdown-menu" aria-labelledby="btnGroupDropKonto">
 					<form action="buchungen.php" method="POST">
 						<?php
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="X">';
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="' . $strZeitraum_aus_POST . '">'; 
@@ -262,11 +255,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 					<?php
 					foreach($arrBankID_aus_DB as $index2 => $bankname) {
 						echo '<form action="buchungen.php" method="POST">';
-							/*
-							echo '<input type="hidden" 
-										name="Bank" 
-										value="' . $index2 . '">';
-							*/
 							echo '<input type="hidden" 
 										name="Zeitraum" 
 										value="' . $strZeitraum_aus_POST . '">';
@@ -306,11 +294,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 				<div class="dropdown-menu" aria-labelledby="btnGroupDropZeitraum">
 					<form action="buchungen.php" method="POST">
 						<?php
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="' . $strBankID_aus_POST . '">';
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="X">';
@@ -323,11 +306,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 					</form>
 					<form action="buchungen.php" method="POST">
 						<?php
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="' . $strBankID_aus_POST . '">';
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="3M">';
@@ -339,11 +317,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 					</form>
 					<form action="buchungen.php" method="POST">
 						<?php
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="' . $strBankID_aus_POST . '">'; 
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="6M">';
@@ -355,11 +328,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 					</form>
 					<form action="buchungen.php" method="POST">
 						<?php
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="' . $strBankID_aus_POST . '">';
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="1J">';
@@ -373,11 +341,6 @@ $DBausgabe = $pdo->query($DBabfrage);
 					<?php
 					foreach($arrKalenderjahre_aus_DB as $Jahr) { 
 						echo '<form action="buchungen.php" method="POST">';
-						/*
-						echo '<input type="hidden" 
-								name="Bank" 
-								value="' . $strBankID_aus_POST . '">';
-						*/
 						echo '<input type="hidden" 
 								name="Zeitraum" 
 								value="' . $Jahr . '">';
@@ -442,12 +405,12 @@ $DBausgabe = $pdo->query($DBabfrage);
 							echo date('d.m.Y', strtotime($zeile['Buchungsdatum'])); 
 						echo '</td>';
 						echo '<td>';
-							echo $zeile['AuftraggeberEmpfaenger'];
-						echo '</td>';
-						echo '<td>';
 							echo '<div><span class="badge badge-pill badge-info">'
 									. $zeile['Buchungstyp']
 									. '</span></div>'; 
+							echo $zeile['AuftraggeberEmpfaenger'];
+						echo '</td>';
+						echo '<td>';
 							echo $zeile['Verwendungszweck'];
 						echo '</td>';
 						echo '<td class="text-right">';
