@@ -409,11 +409,10 @@ $DBausgabe = $pdo->query($DBabfrage);
 		<table class="table table-hover">
 			<thead class="thead-dark">
 				<tr>
-					<th style="width: 10%">Bank</th>
+					<th style="width: 15%">Bank</th>
 					<th style="width: 10%">Datum</th>
-					<th style="width: 20%">Buchungstyp</th>
-					<th style="width: 20%">Auftraggeber / Empfänger</th>
-					<th style="width: 30%">Verwendungszweck</th>
+					<th style="width: 25%">Auftraggeber / Empfänger</th>
+					<th style="width: 40%">Verwendungszweck</th>
 					<th style="width: 10%" class="text-right">Betrag</th>
 				</tr>
 			</thead>
@@ -424,16 +423,16 @@ $DBausgabe = $pdo->query($DBabfrage);
 						echo '<td>';
 							echo $zeile['Bank'];
 						echo '</td>';
-						   echo '<td>'; 
+						echo '<td>'; 
 							echo date('d.m.Y', strtotime($zeile['Buchungsdatum'])); 
 						echo '</td>';
 						echo '<td>';
-							echo $zeile['Buchungstyp'];
-						echo '</td>';
-						   echo '<td>';
 							echo $zeile['AuftraggeberEmpfaenger'];
 						echo '</td>';
-						   echo '<td>';
+						echo '<td>';
+							echo '<div><span class="badge badge-pill badge-info">'
+									. $zeile['Buchungstyp']
+									. '</span></div>'; 
 							echo $zeile['Verwendungszweck'];
 						echo '</td>';
 						echo '<td class="text-right">';
