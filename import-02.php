@@ -44,8 +44,8 @@ $uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler
 $tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
 
 $zeile = 1;
-
-
+$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
+$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 ?>
 
 <!-- <div class="container-fluid"> -->
@@ -73,19 +73,28 @@ $zeile = 1;
 			$arrZeile = array_map("utf8_encode", $arrZeile); 
 			
 			$Feldanzahl = count($arrZeile);
-			
-			echo "Feldanzahl : " . $Feldanzahl . "<br>";
-			foreach ($arrZeile as $strElement) {
-				# echo "Inhalt: " . $strElement . "<br>";
-				if ($Feldanzahl == 9 ) {
-					echo "Inhalt: " . $strElement . "<br>";
+			if ($Feldanzahl == 9 ) {
+				# Die Arrays-Elemente werden zu einem String zusammengesetzt
+				$strZusammensetzung = implode(";",$arrZeile); 
+				# echo $strZusammensetzung . "<br>";
+				if ( $strZusammensetzung == $strMusterTyp01) {
+					echo "Inhalt: " . $strZusammensetzung . "<br>";
+					echo "Version 01 erkannt" . "<br>";
+					echo "<hr>"; 
+					# Break beendet nicht das IF, sondern die While-Schleife
+					break;
+				}
+				if ( $strZusammensetzung == $strMusterTyp02) {
+					echo "Inhalt: " . $strZusammensetzung . "<br>";
+					echo "Version 02 erkannt" . "<br>";
+					echo "<hr>"; 
+					# Break beendet nicht das IF, sondern die While-Schleife
+					break;
 				}
 			}
-			echo "<hr>"; 
-			
-			
 		} // Ende der While-Schleife
-    
+		echo "Überprüfung wurde beendet" . "<br>";
+		echo "<hr>"; 
     fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
 
