@@ -42,6 +42,7 @@
             <div class="custom-file h4">
                 <input type="file" 
                        class="custom-file-input" 
+                       name="CSVDatei" 
                        id="Dateiupload" 
                        accept=".csv">
 
