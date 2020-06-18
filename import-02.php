@@ -44,8 +44,11 @@ $uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler
 $tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
 
 $zeile = 1;
+$flagCSV_Quelle = "undefiniert";
 $strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 $strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
+$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
+$strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung;Brutto;Geb\u00fchr;Netto;Absender E-Mail-Adresse;Empf\u00e4nger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgeb\u00fchr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugeh\u00f6riger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;L\u00e4ndervorwahl;Auswirkung auf Guthaben';
 ?>
 
 <!-- <div class="container-fluid"> -->
@@ -66,37 +69,87 @@ $strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendun
 
 	# Definiere Array
 	$arrZeile = []; 
+	$arrZeile2 = []; 
+	$numFeldanzahl = 0;
 
+	echo "<h2>CSV Erkennung</h2>";
+	
+	# **********************************************************
+	# ***                Prüfung CSV Bank                    ***
+	# ********************************************************** 
+	# Prüfung, ob die CSV von der Bank kommt
 	if (($datei = fopen($tmpfile, "r")) !== FALSE) {
-		while (($arrZeile = fgetcsv($datei, 0, ";")) !== FALSE) {
+		echo "Überprüfung auf CSV von der Bank" . "<br>";
+		while ( ($arrZeile = fgetcsv($datei, 0, ';')) !== FALSE) {
 			# Die folgende Zeile beseitigt UTF-8 Probleme 
 			$arrZeile = array_map("utf8_encode", $arrZeile); 
 			
-			$Feldanzahl = count($arrZeile);
-			if ($Feldanzahl == 9 ) {
+			# Zähle Felder in der Zeile
+			$numFeldanzahl = count($arrZeile);
+			# echo "<b>Feldanzahl:</b> " . $numFeldanzahl . "<br>";
+			
+			if ($numFeldanzahl == 9 ) {
 				# Die Arrays-Elemente werden zu einem String zusammengesetzt
 				$strZusammensetzung = implode(";",$arrZeile); 
-				# echo $strZusammensetzung . "<br>";
+				
 				if ( $strZusammensetzung == $strMusterTyp01) {
-					echo "Inhalt: " . $strZusammensetzung . "<br>";
-					echo "Version 01 erkannt" . "<br>";
-					echo "<hr>"; 
+					$flagCSV_Quelle = "ING v1";
 					# Break beendet nicht das IF, sondern die While-Schleife
 					break;
 				}
 				if ( $strZusammensetzung == $strMusterTyp02) {
-					echo "Inhalt: " . $strZusammensetzung . "<br>";
-					echo "Version 02 erkannt" . "<br>";
-					echo "<hr>"; 
+					$flagCSV_Quelle = "ING v2";
 					# Break beendet nicht das IF, sondern die While-Schleife
 					break;
 				}
 			}
 		} // Ende der While-Schleife
-		echo "Überprüfung wurde beendet" . "<br>";
+		
+		echo "Überprüfung Bank wurde beendet" . "<br>";
 		echo "<hr>"; 
     fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
+
+	# **********************************************************
+	# ***                      PayPal                        ***
+	# ********************************************************** 
+	// BOM as a string for comparison.
+	$bom = "\xef\xbb\xbf";
+	
+	if (($datei = fopen($tmpfile, "r")) !== FALSE) {
+		
+		echo "Überprüfung auf CSV von PayPal" . "<br>";
+		while ( ($arrZeile = fgetcsv($datei, 0, ',', '"')) !== FALSE) {
+			# Die folgende Zeile beseitigt UTF-8 Probleme (kommt hier nicht zur Anwendung!)
+			# $arrZeile = array_map("utf8_encode", $arrZeile); 
+			
+			$numFeldanzahl = count($arrZeile);
+			
+			if ($numFeldanzahl == 41 ) {
+				$flagCSV_Quelle = "PayPal";
+				break;
+			}
+		} // Ende der While-Schleife
+		
+		echo "Überprüfung PayPal wurde beendet" . "<br>";
+		echo "<hr>"; 
+    fclose($datei); // Datei wird geschlossen
+	} // Ende der if-Bedingung
+	
+	echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $flagCSV_Quelle . "<br>";
+	echo "<br><br>";
+	
+	
+	######################################################
+		
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 
