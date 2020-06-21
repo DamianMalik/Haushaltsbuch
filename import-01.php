@@ -27,8 +27,10 @@
 
 <body class="font-Bitter bg-light text-dark">
 
-    <?php
-	# <!-- Navigationsleiste -->
+	<?php
+	# **********************************************************
+	# ***             Navigationsleiste                      ***
+	# ********************************************************** 
 	include 'navigation.php';
 	?>
 
