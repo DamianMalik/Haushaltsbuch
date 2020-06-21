@@ -27,59 +27,40 @@
 </head>
 <body class="font-Bitter bg-light text-dark">
 
-<?php
-# <!-- Navigationsleiste -->
-include 'navigation.php';
-
-
-# **********************************************************
-# ***        Parameter aus dem Feld $_FILES lesen        ***
-# ********************************************************** 
-
-# $filename  = $_FILES['CSVDatei']; 
-$Dateiname = $_FILES['CSVDatei']['name'];       // Dateiname (ohne Laufwerk/Pfad)
-$type      = $_FILES['CSVDatei']['type'];       // Dateityp, z.B. "image/gif"
-$size      = $_FILES['CSVDatei']['size'];       // Dateigröße in Byte
-$uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler)
-$tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
-
-$zeile = 1;
-$flagCSV_Quelle = "undefiniert";
-$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
-$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
-$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
-$strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung;Brutto;Geb\u00fchr;Netto;Absender E-Mail-Adresse;Empf\u00e4nger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgeb\u00fchr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugeh\u00f6riger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;L\u00e4ndervorwahl;Auswirkung auf Guthaben';
-?>
-
-<!-- <div class="container-fluid"> -->
-<div class="container">
-	<h3 class="h1 pt-3 pb-3">Dateiupload</h3>
-	<p class="h3 font-weight-bold">Upload Informationen:</p>
 	<?php
 	# **********************************************************
-	# ***           Dateieigenschaften anzeigen              ***
+	# ***             Navigationsleiste                      ***
 	# ********************************************************** 
+	include 'navigation.php';
+
+	# **********************************************************
+	# ***        Parameter aus dem Feld $_FILES lesen        ***
+	# ********************************************************** 
+
+	# $filename  = $_FILES['CSVDatei']; 
+	$Dateiname = $_FILES['CSVDatei']['name'];       // Dateiname (ohne Laufwerk/Pfad)
+	$type      = $_FILES['CSVDatei']['type'];       // Dateityp, z.B. "image/gif"
+	$size      = $_FILES['CSVDatei']['size'];       // Dateigröße in Byte
+	$uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler)
+	$tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
 	
-	echo "Dateiname: " . $Dateiname . "<br>";
-	echo "Dateityp.: " . $type . "<br>";
-	echo "Größe....: " . $size . "Byte (" . round($size / 1024, 2) . " kB)<br>";
-	echo "Fehler...: " . $uploaderr . "<br>";
-	echo "Temp.Dat.: " . $tmpfile . "<br>";
-	echo "<br><hr><br>";
-
-	# Definiere Array
-	$arrZeile = []; 
-	$arrZeile2 = []; 
-	$numFeldanzahl = 0;
-
-	echo "<h2>CSV Erkennung</h2>";
+	$zeile = 1;
+	$flagCSV_Quelle = "unbekannt";
+	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
+	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
+	$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
+	$strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung;Brutto;Geb\u00fchr;Netto;Absender E-Mail-Adresse;Empf\u00e4nger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgeb\u00fchr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugeh\u00f6riger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;L\u00e4ndervorwahl;Auswirkung auf Guthaben';
+	
 	
 	# **********************************************************
 	# ***                Prüfung CSV Bank                    ***
 	# ********************************************************** 
+	# Definiere Array
+	$arrZeile = []; 
+	$numFeldanzahl = 0;
+	
 	# Prüfung, ob die CSV von der Bank kommt
 	if (($datei = fopen($tmpfile, "r")) !== FALSE) {
-		echo "Überprüfung auf CSV von der Bank" . "<br>";
 		while ( ($arrZeile = fgetcsv($datei, 0, ';')) !== FALSE) {
 			# Die folgende Zeile beseitigt UTF-8 Probleme 
 			$arrZeile = array_map("utf8_encode", $arrZeile); 
@@ -105,135 +86,218 @@ $strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung
 			}
 		} // Ende der While-Schleife
 		
-		echo "Überprüfung Bank wurde beendet" . "<br>";
-		echo "<hr>"; 
+		# echo "Überprüfung Bank wurde beendet" . "<br><hr>";
+	
     fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
 
 	# **********************************************************
-	# ***                      PayPal                        ***
+	# ***                Prüfung CSV PayPal                  ***
 	# ********************************************************** 
-	// BOM as a string for comparison.
-	$bom = "\xef\xbb\xbf";
 	
 	if (($datei = fopen($tmpfile, "r")) !== FALSE) {
-		
-		echo "Überprüfung auf CSV von PayPal" . "<br>";
 		while ( ($arrZeile = fgetcsv($datei, 0, ',', '"')) !== FALSE) {
 			# Die folgende Zeile beseitigt UTF-8 Probleme (kommt hier nicht zur Anwendung!)
 			# $arrZeile = array_map("utf8_encode", $arrZeile); 
 			
+			# Zähle Felder in der Zeile
 			$numFeldanzahl = count($arrZeile);
 			
-			if ($numFeldanzahl == 41 ) {
-				$flagCSV_Quelle = "PayPal";
-				break;
+			# Überprüfung ob die Felder 7=Brutto und 12=Transaktionscode lauten
+			if ($numFeldanzahl == 41) {
+				if ($arrZeile[7] == 'Brutto' AND $arrZeile[12] == 'Transaktionscode') {
+					$flagCSV_Quelle = "PayPal";
+					break;
+				}
 			}
 		} // Ende der While-Schleife
 		
-		echo "Überprüfung PayPal wurde beendet" . "<br>";
-		echo "<hr>"; 
+		# echo "Überprüfung PayPal wurde beendet" . "<br><hr>";
+		
     fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
 	
-	echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $flagCSV_Quelle . "<br>";
-	echo "<br><br>";
+	# echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $flagCSV_Quelle . "<br>";
+	# echo "<br><br>";
 	
 	
-	######################################################
-		
+	# **********************************************************
+	# ***                  Datenbankzugang                   ***
+	# **********************************************************
+	# Verbindungsaufbau zur Datenbank
+	include 'datenbank.php';
 	
 	
+	# **********************************************************
+	# ***           Datenbanktabelle festlegen               ***
+	# ********************************************************** 
+	
+	# $dbtabellenname = "Buchungen_PayPal";
+	$dbtabellenname = "Buchungen";
 	
 	
+	# **********************************************************
+	# ***              Upload Nummer festlegen               ***
+	# **********************************************************
 	
-	
-	
-	
+	$DBabfrage = "SELECT `Uploadnummer`
+				  FROM `" . $dbtabellenname . "` 
+				  ORDER BY `Uploadnummer` DESC
+				  LIMIT 1;";
+	$DBausgabe = $pdo->query($DBabfrage);
 
+	foreach($DBausgabe as $zeile) {
+			$Uploadnummer_ausDB = $zeile['Uploadnummer'];
+		} // Ende der foreach-Schleife 
 
+	# Uploadnummer festlegen
+	# Falls die Datenbankabfrage leer ist: 
+	if (empty($Uploadnummer_ausDB)) { 
+				$Uploadnummer_ausDB = 999; 
+				}
+	# Die neue Uploadnummer um +1 erhöhen
+	$Uploadnummer_neu = $Uploadnummer_ausDB + 1;
+				
+	unset($DBabfrage); 
+	unset($DBausgabe); 
+	unset($zeile); 
 
+	
+	
+	# **********************************************************
+	# ***                                                    ***
+	# ***                     Ausgabe                        ***
+	# ***                                                    ***
+	# **********************************************************
 	?>
+	<!-- <div class="container-fluid"> -->
+	<div class="container">
+		<!-- <div class="pt-3"> -->
+		<h1 class="pt-3 pb-4">Prüfung CSV-Datei</h1>
+		<div class="card-deck mb-5 font-Bitter">
+		
+			<!-- Karte 1 - Uploadinformationen -->
+			<div class="card" style="width: 18rem;">
+				<div class="card-header h4 text-white bg-dark">Uploadinformationen</div>
+				<ul class="list-group list-group-flush bg-light">
+				<?php
+					echo '<li class="list-group-item">';
+						echo '<span class="badge badge-secondary">Dateiname</span>' . '<br>'; 
+						echo $Dateiname;
+					echo '</li>';
+					echo '<li class="list-group-item">';
+							echo '<span class="badge badge-secondary">Temporäre Datei</span>' . '<br>'; 
+							echo $tmpfile;
+						echo '</li>';
+					echo '<li class="list-group-item">';
+							echo '<span class="badge badge-secondary">Größe</span>' . '<br>'; 
+							echo  number_format($size, 0, ',', '.') 
+								. " Byte (" 
+								. number_format(round($size / 1024, 2), 0, ',', '.')
+								. " kB)";
+						echo '</li>';
+					echo '<li class="list-group-item">';
+						echo '<span class="badge badge-secondary">letzte Upload Nummer</span>' . '<br>'; 
+						if ($Uploadnummer_ausDB == '999') {
+							echo "noch kein Upload durchgeführt." . "<br>";
+						} else {
+							echo $Uploadnummer_ausDB . "<br>";
+						}
+					echo '</li>';
+					echo '<li class="list-group-item">';
+							echo '<span class="badge badge-secondary">neue Upload Nummer</span>' . '<br>'; 
+							echo $Uploadnummer_neu . "<br>";
+						echo '</li>';
+					echo '<li class="list-group-item">';
+							if ( $type == "text/csv") {
+								echo '<span class="badge badge-success">Dateityp</span>' . '<br>'; 
+							} else {
+								echo '<span class="badge badge-danger">Dateityp</span>' . '<br>'; 
+							}
+							echo $type;
+						echo '</li>';
+					
+					echo '<li class="list-group-item">';
+							if ( $uploaderr == 0 ) {
+								echo '<span class="badge badge-success">Fehler</span>' . '<br>'; 
+							} else {
+								echo '<span class="badge badge-danger">Fehler</span>' . '<br>'; 
+							}
+							echo $uploaderr;
+						echo '</li>';
+				?>
+				</ul>
+			</div>
+			<!-- Karte 2 - Kontoinformationen -->
+			<div class="card" style="width: 18rem;">
+				<div class="card-header h4 text-white bg-dark">Kontoinformationen</div>
+				<ul class="list-group list-group-flush bg-light">
+				<?php
+					echo '<li class="list-group-item">';
+						if ($flagCSV_Quelle == 'unbekannt') {
+							echo '<span class="badge badge-danger">CSV-Quelle</span>' . '<br>'; 
+							echo $flagCSV_Quelle;
+						} else {
+							echo '<span class="badge badge-info">CSV-Quelle</span>' . '<br>'; 
+							echo $flagCSV_Quelle;
+						}
+						echo '</li>';
+					echo '<li class="list-group-item">';
+							# echo "<small><b>Konto ID</b></small><br>";
+							echo '<span class="badge badge-danger">Konto</span>' . '<br>'; 
+							echo "1";
+						echo '</li>';
+					echo '<li class="list-group-item">';
+							# echo "<small><b>Inhaber</b></small><br>";
+							echo '<span class="badge badge-danger">Inhaber</span>' . '<br>'; 
+							echo "XYZ";
+						echo '</li>';
+						
+					echo '<li class="list-group-item">';
+							# echo "<small><b>Bank</b></small><br>";
+							echo '<span class="badge badge-danger">Bank</span>' . '<br>'; 
+							echo "xXXX";
+						echo '</li>';
+						
+					
+					echo '<li class="list-group-item">';
+							# echo "<small><b>IBA</b></small><br>";
+							echo '<span class="badge badge-danger">IBA</span>' . '<br>'; 
+							echo "XYd484303487464";
+						echo '</li>';
+					
+					echo '<li class="list-group-item">';
+							# echo "<small><b>K....Nummer</b></small><br>";
+							echo '<span class="badge badge-danger">K...nummer</span>' . '<br>'; 
+							echo "433632";
+						echo '</li>';
+					
+					echo '<li class="list-group-item">';
+						# echo "<small><b>K...</b></small><br>";
+						echo '<span class="badge badge-danger">G...-Nummer</span>' . '<br>'; 
+						echo "G...Konto";
+					echo '</li>';
+					echo '<li class="list-group-item">';
+						# echo "<small><b>L...</b></small><br>";
+						echo '<span class="badge badge-danger">L-Nummer</span>' . '<br>'; 
+						echo "L.....";
+					echo '</li>';
+				?>
+				</ul>
+			</div>
+			
+		</div>
+	
+	
+
+<?php
+########################################################################################
+?>
 
 
 
 
-
-	<p class="h3 font-weight-bold">Kontoinformationen:</p>
-	<div class="table-responsive">
-
-		<table class="table table-striped">
-
-			<tbody>
-				<tr>
-					<td style="width: 50%">letzte Upload Nummer:</td>
-					<td>1102</td>
-				</tr>
-				<tr>
-					<td>neue Upload Nummer:</td>
-					<td>1103</td>
-				</tr>
-				<tr>
-					<td>Konto id:</td>
-					<td>1</td>
-				</tr>
-				<tr>
-					<td>Inhaber:</td>
-					<td>XYZ</td>
-				</tr>
-				<tr>
-					<td>Bank:</td>
-					<td>xXXX</td>
-				</tr>
-				<tr>
-					<td>IBA</td>
-					<td>XYd484303487464</td>
-				</tr>
-				<tr>
-					<td>K....Nummer</td>
-					<td>433632</td>
-				</tr>
-				<tr>
-					<td>K....</td>
-					<td>G....kto</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-
-	<div class="border-top my-3"></div>
-
-	<p class="h3 font-weight-bold">Uploadinformationen:</p>
-
-	<div class="table-responsive">
-		<table class="table table-striped">
-
-			<tbody>
-				<tr>
-					<td style="width: 50%">Dateiname:</td>
-					<td>skuxjxue.csv</td>
-				</tr>
-				<tr>
-					<td>Dateityp:</td>
-					<td>text/csv</td>
-				</tr>
-				<tr>
-					<td>Größe:</td>
-					<td>7623Byte (7,44 kB)</td>
-				</tr>
-				<tr>
-					<td>Fehler:</td>
-					<td>0</td>
-				</tr>
-				<tr>
-					<td>Temporäre Datei:</td>
-					<td>/tmp/phpB5qnQb</td>
-				</tr>
-
-			</tbody>
-		</table>
-
-	</div>
+	
 </div>
 
 <!-- Optional JavaScript -->
