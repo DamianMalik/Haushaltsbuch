@@ -45,7 +45,8 @@
 	$tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
 	
 	$zeile = 1;
-	$flagCSV_Quelle = "unbekannt";
+	$strCSV_Quelle = 'unbekannt';
+	$strKontotyp_ausCSV = 'unbekannt';
 	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 	$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
@@ -69,17 +70,45 @@
 			$numFeldanzahl = count($arrZeile);
 			# echo "<b>Feldanzahl:</b> " . $numFeldanzahl . "<br>";
 			
+			if ($numFeldanzahl == 2 ) {
+				if ($arrZeile[0] == 'Konto') {
+					# Text 'Girokonto: ' entfernen
+					$strKontonummer_ausCSV = str_replace('Girokonto: ', '', $arrZeile[1]);
+					$strKontonummer_ausCSV = str_replace('Extra-Konto: ', '', $strKontonummer_ausCSV);
+					
+					# Ermittlung Kontotyp
+					$strKontotyp_ausCSV = preg_replace('/[0-9: ]+/', '', $arrZeile[1]);
+					if ($strKontotyp_ausCSV == 'DE' ) $strKontotyp_ausCSV = 'unbekannt'; 
+					
+					# Festlegung CSV-Quelle
+					$strCSV_Quelle = 'ING v1';
+					$strBank_ausCSV = 'ING-DiBa'; 
+				}
+				if ($arrZeile[0] == 'IBAN') {
+					# Ersetze Leerzeichen
+					$strKontonummer_ausCSV = str_replace(' ', '', $arrZeile[1]);
+					
+					# Festlegung CSV-Quelle
+					$strCSV_Quelle = "ING v2";
+					$strBank_ausCSV = 'ING-DiBa'; 
+				}
+				if ($arrZeile[0] == 'Kunde') $strInhaber_ausCSV = $arrZeile[1];
+				if ($arrZeile[0] == 'Kontoname') $strKontotyp_ausCSV = $arrZeile[1];
+			}
+			
+			
+			
 			if ($numFeldanzahl == 9 ) {
 				# Die Arrays-Elemente werden zu einem String zusammengesetzt
 				$strZusammensetzung = implode(";",$arrZeile); 
 				
 				if ( $strZusammensetzung == $strMusterTyp01) {
-					$flagCSV_Quelle = "ING v1";
+					$strCSV_Quelle = "ING v1";
 					# Break beendet nicht das IF, sondern die While-Schleife
 					break;
 				}
 				if ( $strZusammensetzung == $strMusterTyp02) {
-					$flagCSV_Quelle = "ING v2";
+					$strCSV_Quelle = "ING v2";
 					# Break beendet nicht das IF, sondern die While-Schleife
 					break;
 				}
@@ -106,8 +135,15 @@
 			# Überprüfung ob die Felder 7=Brutto und 12=Transaktionscode lauten
 			if ($numFeldanzahl == 41) {
 				if ($arrZeile[7] == 'Brutto' AND $arrZeile[12] == 'Transaktionscode') {
-					$flagCSV_Quelle = "PayPal";
-					break;
+					$strCSV_Quelle = "PayPal";
+					$strBank_ausCSV = 'PayPal'; 
+					# break;
+				}
+				# Ermittlung von Konto und Inhaber ("Kunde")
+				if ( intval($arrZeile[7]) < '0' ) {
+						$strKontonummer_ausCSV = $arrZeile[10];
+						# $strBank_ausCSV = 'PayPal';
+						$strInhaber_ausCSV = $arrZeile[10]; 
 				}
 			}
 		} // Ende der While-Schleife
@@ -117,7 +153,7 @@
     fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
 	
-	# echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $flagCSV_Quelle . "<br>";
+	# echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $strCSV_Quelle . "<br>";
 	# echo "<br><br>";
 	
 	
@@ -126,6 +162,36 @@
 	# **********************************************************
 	# Verbindungsaufbau zur Datenbank
 	include 'datenbank.php';
+	
+	
+	# **********************************************************
+	# ***          Kontoinformatonen aus DB ermitteln        ***
+	# ********************************************************** 
+	
+	$DBabfrage = "SELECT * 
+	              FROM `Banken` 
+	              WHERE `Kontonummer` LIKE '%" . $strKontonummer_ausCSV . "%' ;";
+	$DBausgabe = $pdo->query($DBabfrage);
+	
+	
+	foreach($DBausgabe as $zeile) {
+			$intID_ausDB = $zeile['id'];
+			$strInhaber_ausDB = $zeile['Inhaber'];
+			$strBank_ausDB = $zeile['Bankname'];
+			$strKontonummer_ausDB = $zeile['Kontonummer'];
+		} // Ende der foreach-Schleife 
+	
+	
+	# Falls die Datenbankabfrage leer ist: 
+	if (empty($strKontonummer_ausDB)) { 
+				$intID_ausDB = "-1";
+	}
+	
+	unset($DBabfrage); 
+	unset($DBausgabe); 
+	unset($zeile); 
+
+	
 	
 	
 	# **********************************************************
@@ -234,54 +300,49 @@
 				<ul class="list-group list-group-flush bg-light">
 				<?php
 					echo '<li class="list-group-item">';
-						if ($flagCSV_Quelle == 'unbekannt') {
+						if ($strCSV_Quelle == 'unbekannt')  {
 							echo '<span class="badge badge-danger">CSV-Quelle</span>' . '<br>'; 
-							echo $flagCSV_Quelle;
+							echo $strCSV_Quelle;
 						} else {
-							echo '<span class="badge badge-info">CSV-Quelle</span>' . '<br>'; 
-							echo $flagCSV_Quelle;
+							echo '<span class="badge badge-success">Bank</span>' 
+								.'/'
+								.'<span class="badge badge-success">CSV-Quelle</span>' 
+								.'<br>'; 
+							echo $strBank_ausCSV . " (" . $strCSV_Quelle . ")";
 						}
 						echo '</li>';
 					echo '<li class="list-group-item">';
-							# echo "<small><b>Konto ID</b></small><br>";
-							echo '<span class="badge badge-danger">Konto</span>' . '<br>'; 
-							echo "1";
+							echo '<span class="badge badge-success">Inhaber</span>' . '<br>'; 
+							echo $strInhaber_ausCSV . "<br>";
 						echo '</li>';
+
 					echo '<li class="list-group-item">';
-							# echo "<small><b>Inhaber</b></small><br>";
-							echo '<span class="badge badge-danger">Inhaber</span>' . '<br>'; 
-							echo "XYZ";
-						echo '</li>';
-						
-					echo '<li class="list-group-item">';
-							# echo "<small><b>Bank</b></small><br>";
-							echo '<span class="badge badge-danger">Bank</span>' . '<br>'; 
-							echo "xXXX";
-						echo '</li>';
-						
-					
-					echo '<li class="list-group-item">';
-							# echo "<small><b>IBA</b></small><br>";
-							echo '<span class="badge badge-danger">IBA</span>' . '<br>'; 
-							echo "XYd484303487464";
+							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
+							echo $strKontonummer_ausCSV . "<br>";
 						echo '</li>';
 					
 					echo '<li class="list-group-item">';
-							# echo "<small><b>K....Nummer</b></small><br>";
-							echo '<span class="badge badge-danger">K...nummer</span>' . '<br>'; 
-							echo "433632";
+						if ( $strKontotyp_ausCSV != 'unbekannt' ) {
+							echo '<span class="badge badge-success">Kontotyp</span>' . '<br>'; 
+						} else {
+							echo '<span class="badge badge-danger">Kontotyp</span>' . '<br>'; 
+						}
+						echo $strKontotyp_ausCSV . "<br>";
 						echo '</li>';
 					
+					
+					
+					
 					echo '<li class="list-group-item">';
-						# echo "<small><b>K...</b></small><br>";
-						echo '<span class="badge badge-danger">G...-Nummer</span>' . '<br>'; 
-						echo "G...Konto";
-					echo '</li>';
-					echo '<li class="list-group-item">';
-						# echo "<small><b>L...</b></small><br>";
-						echo '<span class="badge badge-danger">L-Nummer</span>' . '<br>'; 
-						echo "L.....";
-					echo '</li>';
+							if ( $intID_ausDB > 0 ) {
+								echo '<span class="badge badge-info">Status</span>' . '<br>'; 
+								echo $intID_ausDB;
+							} else {
+								echo '<span class="badge badge-danger">Status</span>' . '<br>'; 
+								echo "Konto nicht vorhanden, Konto wird neu angelegt";
+							}
+						echo '</li>';
+					
 				?>
 				</ul>
 			</div>
