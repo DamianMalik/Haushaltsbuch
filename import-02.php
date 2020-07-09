@@ -39,14 +39,18 @@
 
 	# $filename  = $_FILES['CSVDatei']; 
 	$Dateiname = $_FILES['CSVDatei']['name'];       // Dateiname (ohne Laufwerk/Pfad)
-	$type      = $_FILES['CSVDatei']['type'];       // Dateityp, z.B. "image/gif"
+	$strDateityp = $_FILES['CSVDatei']['type'];       // Dateityp, z.B. "image/gif"
 	$size      = $_FILES['CSVDatei']['size'];       // Dateigröße in Byte
 	$uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler)
 	$tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
 	
 	$zeile = 1;
 	$strCSV_Quelle = 'unbekannt';
+	$strInhaber_ausCSV = 'unbekannt';
+	$strKontonummer_ausCSV = 'unbekannt'; 
 	$strKontotyp_ausCSV = 'unbekannt';
+	$intID_ausDB = -8432;
+	$intPruefung_01 = 1; // 1=OK; 9=Fehler
 	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 	$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
@@ -57,6 +61,7 @@
 	# ***                Prüfung CSV Bank                    ***
 	# ********************************************************** 
 	# Definiere Array
+	
 	$arrZeile = []; 
 	$numFeldanzahl = 0;
 	
@@ -135,7 +140,7 @@
 			# Überprüfung ob die Felder 7=Brutto und 12=Transaktionscode lauten
 			if ($numFeldanzahl == 41) {
 				if ($arrZeile[7] == 'Brutto' AND $arrZeile[12] == 'Transaktionscode') {
-					$strCSV_Quelle = "PayPal";
+					$strCSV_Quelle = 'PayPal';
 					$strBank_ausCSV = 'PayPal'; 
 					# break;
 				}
@@ -144,7 +149,17 @@
 						$strKontonummer_ausCSV = $arrZeile[10];
 						# $strBank_ausCSV = 'PayPal';
 						$strInhaber_ausCSV = $arrZeile[10]; 
+						$strKontotyp_ausCSV = 'Privat'; 
 				}
+				# Überprüfung des Inhalts: ist die CSV inhaltlich valide?
+				if ( $arrZeile[40] == 'Soll' || $arrZeile[40] == 'Haben') {
+					$intImportStatus = 1;
+				} else {
+					
+					$intImportStatus = 9;
+					$strImportStatus = 'CSV Daten nicht valide oder CSV-Datei enthält keine Daten';
+				}
+				
 			}
 		} // Ende der While-Schleife
 		
@@ -168,38 +183,29 @@
 	# ***          Kontoinformatonen aus DB ermitteln        ***
 	# ********************************************************** 
 	
-	$DBabfrage = "SELECT * 
+	$DBabfrage = "SELECT `id`, `Inhaber`, `Bankname`, `Kontonummer`, `Kontoname`  
 	              FROM `Banken` 
 	              WHERE `Kontonummer` LIKE '%" . $strKontonummer_ausCSV . "%' ;";
 	$DBausgabe = $pdo->query($DBabfrage);
 	
 	
-	foreach($DBausgabe as $zeile) {
-			$intID_ausDB = $zeile['id'];
-			$strInhaber_ausDB = $zeile['Inhaber'];
-			$strBank_ausDB = $zeile['Bankname'];
-			$strKontonummer_ausDB = $zeile['Kontonummer'];
+	foreach($DBausgabe as $datensatz) {
+			$intID_ausDB          = $datensatz['id'];
+			$strInhaber_ausDB     = $datensatz['Inhaber'];
+			$strBank_ausDB        = $datensatz['Bankname'];
+			$strKontonummer_ausDB = $datensatz['Kontonummer'];
 		} // Ende der foreach-Schleife 
 	
-	
 	# Falls die Datenbankabfrage leer ist: 
+	
 	if (empty($strKontonummer_ausDB)) { 
-				$intID_ausDB = "-1";
+				$intID_ausDB = '-1';
 	}
 	
 	unset($DBabfrage); 
 	unset($DBausgabe); 
 	unset($zeile); 
-
 	
-	
-	
-	# **********************************************************
-	# ***           Datenbanktabelle festlegen               ***
-	# ********************************************************** 
-	
-	# $dbtabellenname = "Buchungen_PayPal";
-	$dbtabellenname = "Buchungen";
 	
 	
 	# **********************************************************
@@ -207,7 +213,7 @@
 	# **********************************************************
 	
 	$DBabfrage = "SELECT `Uploadnummer`
-				  FROM `" . $dbtabellenname . "` 
+				  FROM `Buchungen` 
 				  ORDER BY `Uploadnummer` DESC
 				  LIMIT 1;";
 	$DBausgabe = $pdo->query($DBabfrage);
@@ -215,7 +221,7 @@
 	foreach($DBausgabe as $zeile) {
 			$Uploadnummer_ausDB = $zeile['Uploadnummer'];
 		} // Ende der foreach-Schleife 
-
+	
 	# Uploadnummer festlegen
 	# Falls die Datenbankabfrage leer ist: 
 	if (empty($Uploadnummer_ausDB)) { 
@@ -227,7 +233,6 @@
 	unset($DBabfrage); 
 	unset($DBausgabe); 
 	unset($zeile); 
-
 	
 	
 	# **********************************************************
@@ -242,11 +247,12 @@
 		<h1 class="pt-3 pb-4">Prüfung CSV-Datei</h1>
 		<div class="card-deck mb-5 font-Bitter">
 		
-			<!-- Karte 1 - Uploadinformationen -->
+			<!-- Karte 1 - CSV Technische Prüfung -->
 			<div class="card" style="width: 18rem;">
-				<div class="card-header h4 text-white bg-dark">Uploadinformationen</div>
+				<div class="card-header h4 text-white bg-dark">CSV Technische Prüfung</div>
 				<ul class="list-group list-group-flush bg-light">
 				<?php
+					
 					echo '<li class="list-group-item">';
 						echo '<span class="badge badge-secondary">Dateiname</span>' . '<br>'; 
 						echo $Dateiname;
@@ -258,31 +264,18 @@
 					echo '<li class="list-group-item">';
 							echo '<span class="badge badge-secondary">Größe</span>' . '<br>'; 
 							echo  number_format($size, 0, ',', '.') 
-								. " Byte (" 
+								. ' Byte (' 
 								. number_format(round($size / 1024, 2), 0, ',', '.')
-								. " kB)";
+								. ' kB)';
 						echo '</li>';
 					echo '<li class="list-group-item">';
-						echo '<span class="badge badge-secondary">letzte Upload Nummer</span>' . '<br>'; 
-						if ($Uploadnummer_ausDB == '999') {
-							echo "noch kein Upload durchgeführt." . "<br>";
-						} else {
-							echo $Uploadnummer_ausDB . "<br>";
-						}
-					echo '</li>';
-					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-secondary">neue Upload Nummer</span>' . '<br>'; 
-							echo $Uploadnummer_neu . "<br>";
-						echo '</li>';
-					echo '<li class="list-group-item">';
-							if ( $type == "text/csv") {
+							if ( $strDateityp == 'text/csv') {
 								echo '<span class="badge badge-success">Dateityp</span>' . '<br>'; 
 							} else {
 								echo '<span class="badge badge-danger">Dateityp</span>' . '<br>'; 
 							}
-							echo $type;
+							echo $strDateityp;
 						echo '</li>';
-					
 					echo '<li class="list-group-item">';
 							if ( $uploaderr == 0 ) {
 								echo '<span class="badge badge-success">Fehler</span>' . '<br>'; 
@@ -291,64 +284,216 @@
 							}
 							echo $uploaderr;
 						echo '</li>';
+					echo '<li class="list-group-item">';
+							if ( $strDateityp == 'text/csv' AND $uploaderr == 0 ) {
+								echo '<div class="alert alert-success" role="alert">Technische Prüfung in Ordnung</div>';
+								# echo '<span class="badge badge-success">OKAY</span>' . '<br>'; 
+								$intPruefung_01 = 1; // 1=OK; 9=Fehler
+							} else {
+								echo '<div class="alert alert-danger" role="alert">Technische Prüfung fehlerhaft</div>';
+								$intPruefung_01 = 9; // 1=OK; 9=Fehler
+							}
+						echo '</li>';
 				?>
 				</ul>
 			</div>
-			<!-- Karte 2 - Kontoinformationen -->
+			<!-- Karte 2 - CSV Inhaltliche Prüfung -->
 			<div class="card" style="width: 18rem;">
-				<div class="card-header h4 text-white bg-dark">Kontoinformationen</div>
+				<div class="card-header h4 text-white bg-dark">CSV Inhaltliche Prüfung</div>
 				<ul class="list-group list-group-flush bg-light">
-				<?php
+					<?php
 					echo '<li class="list-group-item">';
 						if ($strCSV_Quelle == 'unbekannt')  {
 							echo '<span class="badge badge-danger">CSV-Quelle</span>' . '<br>'; 
 							echo $strCSV_Quelle;
 						} else {
-							echo '<span class="badge badge-success">Bank</span>' 
-								.'/'
-								.'<span class="badge badge-success">CSV-Quelle</span>' 
+							echo '<span class="badge badge-success">CSV-Quelle</span>' 
 								.'<br>'; 
-							echo $strBank_ausCSV . " (" . $strCSV_Quelle . ")";
+							echo $strBank_ausCSV . ' (' . $strCSV_Quelle . ")";
 						}
 						echo '</li>';
 					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-success">Inhaber</span>' . '<br>'; 
-							echo $strInhaber_ausCSV . "<br>";
+						if ($intImportStatus != 9)  {
+							echo '<span class="badge badge-success">CSV-Inhalt</span>' . '<br>'; 
+							echo "CSV Daten valide";
+						} else {
+							echo '<span class="badge badge-danger">CSV-Inhalt</span>' .'<br>'; 
+							echo "CSV Daten nicht valide oder keine Daten in CSV vorhanden";
+						}
 						echo '</li>';
-
+						
 					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
-							echo $strKontonummer_ausCSV . "<br>";
+						if ( $strInhaber_ausCSV != 'unbekannt') {
+							echo '<span class="badge badge-success">Kontoinhaber</span>' . '<br>'; 
+						} else {
+							echo '<span class="badge badge-danger">Kontoinhaber</span>' . '<br>'; 
+						}
+							echo $strInhaber_ausCSV . '<br>';
 						echo '</li>';
-					
+					echo '<li class="list-group-item">';
+						if ( $strKontonummer_ausCSV != 'unbekannt' ) {
+							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
+						} else {
+							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
+						}
+						echo $strKontonummer_ausCSV . '<br>';
+					echo '</li>';
 					echo '<li class="list-group-item">';
 						if ( $strKontotyp_ausCSV != 'unbekannt' ) {
 							echo '<span class="badge badge-success">Kontotyp</span>' . '<br>'; 
 						} else {
 							echo '<span class="badge badge-danger">Kontotyp</span>' . '<br>'; 
 						}
-						echo $strKontotyp_ausCSV . "<br>";
+						echo $strKontotyp_ausCSV . '<br>';
 						echo '</li>';
-					
-					
-					
-					
-					echo '<li class="list-group-item">';
-							if ( $intID_ausDB > 0 ) {
-								echo '<span class="badge badge-info">Status</span>' . '<br>'; 
-								echo $intID_ausDB;
-							} else {
-								echo '<span class="badge badge-danger">Status</span>' . '<br>'; 
-								echo "Konto nicht vorhanden, Konto wird neu angelegt";
-							}
-						echo '</li>';
-					
 				?>
 				</ul>
-			</div>
+			</div> 
+			
+			
+			
+			
+			
+			<!-- Karte 3 - Datenbank-Prüfung -->
+			<div class="card" style="width: 18rem;">
+				<div class="card-header h4 text-white bg-dark">Prüfung Datenbank</div>
+				<ul class="list-group list-group-flush bg-light">
+				<?php
+					
+					echo '<li class="list-group-item">';
+						echo '<span class="badge badge-secondary">letzte Upload Nummer</span>' . '<br>'; 
+						if ($Uploadnummer_ausDB == '999') {
+							echo 'noch kein Upload durchgeführt.' . '<br>';
+						} else {
+							echo $Uploadnummer_ausDB . '<br>';
+						}
+					echo '</li>';
+					echo '<li class="list-group-item">';
+							echo '<span class="badge badge-secondary">neue Upload Nummer</span>' . '<br>'; 
+							echo $Uploadnummer_neu . '<br>';
+						echo '</li>';
+					echo '<li class="list-group-item">';
+						if ( $intID_ausDB != -1 ) {
+							echo '<span class="badge badge-success">Datenbank-ID</span>' . '<br>'; 
+							echo $intID_ausDB . '<br>';
+						} else {
+							echo '<span class="badge badge-warning">Datenbank-ID</span>' . '<br>'; 
+							echo 'Keine Konto ID vorhanden ' . $intID_ausDB;
+						}
+						echo '</li>';
+				?>
+				</ul>
+			</div> 
+			
 			
 		</div>
-	
+		
+		<?php
+			
+					
+					# Freigabe Import
+					
+					if ( $intImportStatus != 9 ) {
+					
+						# Wenn ID in Datenbank nicht vorhanden ist, dann Konto erstellen und Import möglich (="gelb")
+						if ( $intID_ausDB == -1 ) {
+							if ( $strKontonummer_ausCSV != 'unbekannt' ) {
+								$intImportStatus = 1;
+								$strImportStatus = 'Konto in der Datenbank vorhanden (ID: ' . $intID_ausDB . ')';
+							} else {
+								$intImportStatus = 9;
+								$strImportStatus = 'CSV-Datei enthält keine Daten';
+							}
+						}
+						
+						
+						# Wenn ID in Datenbank vorhanden ist, dann Import Daten möglich (="grün")
+						if ( $intID_ausDB > 0 ) { 
+							# Wenn ID in Datenbank vorhanden ist, aber keine Daten zum Importieren gibt (leere CSV)
+							
+								$intImportStatus = 9;
+								$strImportStatus = 'CSV enthält keine Daten zum importieren';
+							
+						}
+						
+						# Wenn Dateityp nicht 'text/csv', dann Import nicht möglich 
+						if ( $strDateityp != 'text/csv' ) {
+							$intImportStatus = 9;
+							$strImportStatus = 'Falscher Dateityp, kein Import möglich';
+						}
+						
+						# Wenn Fehler-Flag nicht '0', dann Import nicht möglich 
+						if ( $uploaderr != 0  ) {
+							$intImportStatus = 9;
+							$strImportStatus = 'Unbekannter Fehler beim Datenimport, kein Import möglich';
+						}
+					
+					
+					}
+					
+					
+					
+					/*
+					echo '<li class="list-group-item">';
+						if ( $intImportStatus == 1 ) {
+							echo '<span class="badge badge-success">Status</span>' . '<br>'; 
+						} elseif ( $intImportStatus == 2 ) {
+							echo '<span class="badge badge-warning">Status</span>' . '<br>'; 
+						} elseif ( $intImportStatus == 9 ) {
+							echo '<span class="badge badge-danger">Status</span>' . '<br>'; 
+						}
+						echo $strImportStatus; 
+						echo '</li>';
+						*/
+					
+					/*
+					echo '<li class="list-group-item">';
+						if ( $intID_ausDB > 0 ) {
+							echo '<span class="badge badge-success">Status</span>' . '<br>'; 
+							echo 'Konto in der Datenbank vorhanden (ID: ' . $intID_ausDB . ')';
+						} else {
+							echo '<span class="badge badge-warning">Status</span>' . '<br>'; 
+							echo 'Konto nicht in der Datenbank vorhanden';
+						}
+						echo '</li>';
+					*/
+					
+					
+					
+					
+					# Wenn Dateityp != text/csv, dann danger
+					# wenn Fehler <> 0, dann danger
+					# Wenn Bank / CSV-Quelle unbekannt, dann danger
+					# wenn Inhaber unbekannt, dann danger
+					# wenn kontonummer unbekannt, dann danger
+					# wenn kontotyp unbekannt, dann danger
+					
+					/*
+					echo '<li class="list-group-item">';
+						if ( $strDateityp != 'text/csv') {
+							echo '<button type="button" class="btn btn-danger btn-block disabled">Datei ist nicht vom Typ CSV</button>'; 
+						} else {
+							if ( $intID_ausDB > 0 ) {
+								echo '<button type="button" class="btn btn-success btn-block disabled">CSV-Daten in Datenbank einfügen...</button>'; 
+							} else {
+								echo '<button type="button" class="btn btn-warning btn-block disabled">Konto neu erstellen und CSV-Daten einfügen...</button>'; 
+							}
+						}
+						echo '</li>';
+						*/
+						
+			
+			
+			
+			
+			echo '<button type="button" class="btn btn-info float-right disabled">' 
+			    . $strImportStatus 
+			    . ' ('
+			    . $intImportStatus
+			    . ')'
+			    . '</button>'; 
+		?>
+
 	
 
 <?php
