@@ -51,6 +51,7 @@
 	
 	$zeile = 1;
 	$strCSV_Quelle = 'unbekannt';
+	$strBank_ausCSV = 'unbekannt';
 	$strInhaber_ausCSV = 'unbekannt';
 	$strKontonummer_ausCSV = 'unbekannt'; 
 	$strKontotyp_ausCSV = 'unbekannt';
@@ -62,7 +63,9 @@
 	$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
 	$strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung;Brutto;Geb\u00fchr;Netto;Absender E-Mail-Adresse;Empf\u00e4nger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgeb\u00fchr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugeh\u00f6riger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;L\u00e4ndervorwahl;Auswirkung auf Guthaben';
 	# Definiere Array
-	$arrZeile = []; 
+	# $arrZeile = []; 
+	$arrZeile =  array();
+	$arrCSVDaten = array();
 	$numFeldanzahl = 0;
 	
 	# **********************************************************
@@ -105,8 +108,6 @@
 				if ($arrZeile[0] == 'Kontoname') $strKontotyp_ausCSV = $arrZeile[1];
 			}
 			
-			
-			
 			if ($numFeldanzahl == 9 ) {
 				# Die Arrays-Elemente werden zu einem String zusammengesetzt
 				$strZusammensetzung = implode(";",$arrZeile); 
@@ -115,13 +116,18 @@
 					$strCSV_Quelle = "ING v1";
 					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
 					# Break beendet nicht das IF, sondern die While-Schleife
-					break;
+					# break;
 				}
 				if ( $strZusammensetzung == $strMusterTyp02) {
 					$strCSV_Quelle = "ING v2";
 					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
 					# Break beendet nicht das IF, sondern die While-Schleife
-					break;
+					# break;
+				}
+				
+				# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
+				if ( $strZusammensetzung != $strMusterTyp01 AND $strZusammensetzung != $strMusterTyp02) {
+					$arrCSVDaten[] = $arrZeile;
 				}
 			}
 		} // Ende der While-Schleife
@@ -371,7 +377,6 @@
 								OR $arrCSVPruefung[2][5] == 9 ) {
 								echo '<div class="alert alert-danger" role="alert">Inhaltliche Prüfung fehlerhaft</div>';
 								$arrCSVPruefung[2][0] = 9; // 1=OK; 9=Fehler
-								echo "Arrayausgabe: " . $arrCSVPruefung[2] . "<br>";
 							} else {
 								echo '<div class="alert alert-success" role="alert">Inhaltliche Prüfung in Ordnung</div>';
 								$arrCSVPruefung[2][0] = 1; // 1=OK; 9=Fehler
@@ -486,21 +491,89 @@
 		</div>
 		
 		<?php
+		# Array ggf. sortieren
+		# sort($arrCSVPruefung, SORT_ASC);
+		# echo "<pre>\n"; var_dump($arrCSVPruefung); echo "</pre>\n";
+		
+
+	
+	
 		# Freigabe Import
 		# uneingeschränkter Import
 		if ( $arrCSVPruefung[1][0] == 1 AND $arrCSVPruefung[2][0] == 1 AND $arrCSVPruefung[3][0] == 1 ) {
-			echo '<button type="button" class="btn btn-success disabled">Uneingeschränkte Freigabe</button>';
+			# echo '<button type="button" class="btn btn-success disabled">Uneingeschränkte Freigabe</button>';
+			echo '<div class="alert alert-success" role="alert">Uneingeschränkte Freigabe</div>';
+			
+			echo '<div class="alert alert-success" role="alert">';
+			echo '<h4 class="alert-heading">Freigabe</h4>';
+			echo '<p>Uneingeschränkte Freigabe für den CSV-Datenimport.</p>';
+			echo '<hr>';
+			echo '<p class="mb-0">Hier könnte stehen, dass die Daten importiert wurden.</p>';
+			echo '</div>';
 		}
 		
+		# **********************************************************
+		# ***                                                    ***
+		# ***                  Datenbereinigung                  ***
+		# ***                                                    ***
+		# **********************************************************
 		
 		
-		
-		# ksort($arrCSVPruefung);
-		# array_multisort($arrCSVPruefung, SORT_ASC, SORT_NUMERIC);
-		sort($arrCSVPruefung, SORT_ASC);
-		# echo "<pre>\n"; var_dump($arrCSVPruefung); echo "</pre>\n";
+		echo "<h1>arrCSVDaten</h1>";
+		# echo "<pre>\n"; var_dump($arrCSVDaten); echo "</pre>\n";
 		
 		
+		# NACHBEARBEITUNG aller ELEMENTE
+		foreach ( $arrCSVDaten as $arrCSVZeile ) {
+			# **********************************************************
+			# ***              Datumfelder anpassen                  ***
+			# ********************************************************** 
+			# Bereinigungen für den Datenbankimport 
+			# Die beiden Datums-Felder 'Buchungsdatum' und 'Valuta' 
+			# müssen Datenbankkonform sein. Hiermit werden sie 
+			# in das Datenbank-Format geändert
+			$arrCSVZeile[0] = date('Y-m-d', strtotime($arrCSVZeile[0]));
+			$arrCSVZeile[1] = date('Y-m-d', strtotime($arrCSVZeile[1]));
+			
+			
+			# **********************************************************
+			# ***         Doppelte Leerzeichen entfernen             ***
+			# ********************************************************** 
+			# Gelegentlich kommt es vor, dass ein und dieselbe 
+			# Buchung in zwei verschiedenen CSV-Dateien unterschiedlich 
+			# ist, weil in einer der beiden Dateien (aus unbekannten 
+			# Gründen) zusätzliche Leerzeichen enthalten sind. Dadurch 
+			# wird diese Buchung als zwei verschiedene Buchungen 
+			# interpretiert und fälschlicherweise in die Datenbank 
+			# importiert. Die folgenden Zeilen filtern unnötige 
+			# Leerzeichen heraus. Dadurch werden diese Buchungen 
+			# korrigiert.  
+			// Feld 'Auftraggeber/Empfänger' bereinigen
+			$arrCSVZeile[2] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[2]) ); 
+			// Feld 'Buchungstext' bereinigen
+			$arrCSVZeile[3] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[3]) );
+			// Feld 'Verwendungszweck' bereinigen
+			$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
+			
+			# Überflüssige Leerzeichen am Zeilenanfang und 
+			# Zeilenende entfernen
+			$arrCSVZeile[2] = trim($arrCSVZeile[2]);
+			$arrCSVZeile[4] = trim($arrCSVZeile[4]);
+			
+			
+			# **********************************************************
+			# ***         Komma gegen Punkt austauschen              ***
+			# ********************************************************** 
+			# Die Zahlenfelder: Komma gegen Punkt austauschen und 
+			# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
+			$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
+			$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
+			
+			foreach ($arrCSVZeile as $abc) {
+				echo "<b>Zelle</b>: " . $abc . "<br>";
+			}
+			echo "<hr>";
+		}
 		
 		?>
 	
