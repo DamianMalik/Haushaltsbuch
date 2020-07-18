@@ -342,8 +342,8 @@
 							echo '<span class="badge badge-success">Kontoinhaber</span>' . '<br>'; 
 							$arrCSVPruefung[2][3] = 1; // 1=OK; 2=Tolerabel
 						} else {
-							echo '<span class="badge badge-warning">Kontoinhaber</span>' . '<br>'; 
-							$arrCSVPruefung[2][3] = 2; // 1=OK; 2=Tolerabel
+							echo '<span class="badge badge-danger">Kontoinhaber</span>' . '<br>'; 
+							$arrCSVPruefung[2][3] = 9; // 1=OK; 9=Fehler
 						}
 							echo $strInhaber_ausCSV . '<br>';
 						echo '</li>';
@@ -352,8 +352,9 @@
 							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
 							$arrCSVPruefung[2][4] = 1; // 1=OK; 2=Tolerabel
 						} else {
-							echo '<span class="badge badge-warning">Kontonummer</span>' . '<br>'; 
-							$arrCSVPruefung[2][4] = 2; // 1=OK; 2=Tolerabel
+							# echo '<span class="badge badge-warning">Kontonummer</span>' . '<br>'; 
+							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
+							$arrCSVPruefung[2][4] = 9; // 1=OK; 9=Fehler
 						}
 						echo $strKontonummer_ausCSV . '<br>';
 					echo '</li>';
@@ -420,9 +421,9 @@
 							echo $strInhaber_ausDB . '<br>';
 							$arrCSVPruefung[3][3] = 1; // 1=OK; 2=Tolerabel
 						} else {
-							echo '<span class="badge badge-warning">Kontoinhaber</span>' . '<br>'; 
+							echo '<span class="badge badge-danger">Kontoinhaber</span>' . '<br>'; 
 							echo 'Kontoinhaber wird neu angelegt.';
-							$arrCSVPruefung[3][3] = 2; // 1=OK; 2=Tolerabel
+							$arrCSVPruefung[3][3] = 9; // 1=OK; 9=Fehler
 						}
 						echo '</li>';
 					echo '<li class="list-group-item">';
@@ -431,9 +432,9 @@
 							echo $strKontonummer_ausDB . '<br>';
 							$arrCSVPruefung[3][4] = 1; // 1=OK; 2=Tolerabel
 						} else {
-							echo '<span class="badge badge-warning">Kontonummer</span>' . '<br>'; 
+							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
 							echo 'Kontonummer wird neu angelegt.';
-							$arrCSVPruefung[3][4] = 2; // 1=OK; 2=Tolerabel
+							$arrCSVPruefung[3][4] = 9; // 1=OK; 9=Fehler
 						}
 						echo '</li>';
 					
@@ -473,7 +474,11 @@
 					
 					
 					echo '<li class="list-group-item">';
-							if (   $arrCSVPruefung[3][1] == 2 OR $arrCSVPruefung[3][2] == 2 OR $arrCSVPruefung[3][3] == 2 
+							if (   $arrCSVPruefung[3][1] == 9 OR $arrCSVPruefung[3][2] == 9 OR $arrCSVPruefung[3][3] == 9 
+							    OR $arrCSVPruefung[3][4] == 9 OR $arrCSVPruefung[3][5] == 9) {
+								echo '<div class="alert alert-danger" role="alert">Konto wird nicht in Datenbank angelegt.</div>';
+								$arrCSVPruefung[3][0] = 9; // 1=OK; 9=Fehler
+							} elseif (   $arrCSVPruefung[3][1] == 2 OR $arrCSVPruefung[3][2] == 2 OR $arrCSVPruefung[3][3] == 2 
 							    OR $arrCSVPruefung[3][4] == 2 OR $arrCSVPruefung[3][5] == 2) {
 								echo '<div class="alert alert-warning" role="alert">Konto wird neu in Datenbank angelegt.</div>';
 								$arrCSVPruefung[3][0] = 2; // 1=OK; 2=Tolerabel
@@ -501,14 +506,22 @@
 		# Freigabe Import
 		# uneingeschränkter Import
 		if ( $arrCSVPruefung[1][0] == 1 AND $arrCSVPruefung[2][0] == 1 AND $arrCSVPruefung[3][0] == 1 ) {
-			# echo '<button type="button" class="btn btn-success disabled">Uneingeschränkte Freigabe</button>';
-			echo '<div class="alert alert-success" role="alert">Uneingeschränkte Freigabe</div>';
+			# echo '<div class="alert alert-success" role="alert">Uneingeschränkte Import-Freigabe</div>';
 			
 			echo '<div class="alert alert-success" role="alert">';
-			echo '<h4 class="alert-heading">Freigabe</h4>';
+			echo '<h4 class="alert-heading">Import-Freigabe</h4>';
 			echo '<p>Uneingeschränkte Freigabe für den CSV-Datenimport.</p>';
 			echo '<hr>';
 			echo '<p class="mb-0">Hier könnte stehen, dass die Daten importiert wurden.</p>';
+			echo '</div>';
+		} else { 
+			# echo '<div class="alert alert-danger" role="alert">Keine Import-Freigabe</div>';
+			
+			echo '<div class="alert alert-danger" role="alert">';
+			echo '<h4 class="alert-heading">Keine Import-Freigabe</h4>';
+			echo '<p>Die CSV-Prüfung hat einen Fehler ergeben. Ein Datenimport ist nicht möglich.</p>';
+			echo '<hr>';
+			echo '<p class="mb-0">Hier könnte stehen, dass die Daten nicht importiert wurden.</p>';
 			echo '</div>';
 		}
 		
