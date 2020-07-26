@@ -613,93 +613,109 @@
 		
 		$Datensatznummer = 1000;
 		
-		
-		foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
-			$Datenbankinsert  = "INSERT INTO `Buchungen` "
-						   ."(`Uploadnummer`, `Datensatznummer`, 
-						      `BankID`, `Buchungsdatum`, `Valuta`, 
-						      `AuftraggeberEmpfaenger`, `Buchungstyp`, 
-						      `Verwendungszweck`, `Betrag`, 
-						      `Waehrung`, `Saldo`, `CSV_Quelle`) "
-						   ."VALUES "
-                           ."(" 
-						   .":Uploadnummer, :Datensatznummer, :BankID, "
-						   .":Buchungsdatum, :Valuta, "
-						   .":AuftraggeberEmpfaenger, "
-						   .":Buchungstyp, :Verwendungszweck, :Betrag, "
-						   .":Waehrung, :Saldo, :CSV_Quelle "
-						   .") "
-						   ."ON DUPLICATE KEY UPDATE "
-						   ."Uploadnummer = VALUES(Uploadnummer), "
-						   ."Datensatznummer = VALUES(Datensatznummer), "
-						   ."BankID       = VALUES(BankID), "
-						   ."Buchungsdatum  = VALUES(Buchungsdatum), "
-						   ."Valuta       = VALUES(Valuta), "
-						   ."AuftraggeberEmpfaenger      = VALUES(AuftraggeberEmpfaenger), "
-						   ."Verwendungszweck 
-						                  = VALUES(Verwendungszweck), "
-						   ."Betrag       = VALUES(Betrag), "
-						   ."Saldo        = VALUES(Saldo), "
-						   ."CSV_Quelle   = VALUES(CSV_Quelle); ";
-			# echo "<b>SQL: </b> . $Datenbankinsert . <br>";
-			
-			
-			# **********************************************************
-			# ***              Datumfelder anpassen                  ***
-			# ********************************************************** 
-			# Bereinigungen für den Datenbankimport 
-			# Die beiden Datums-Felder 'Buchungsdatum' und 'Valuta' 
-			# müssen Datenbankkonform sein. Hiermit werden sie 
-			# in das Datenbank-Format geändert
-			$arrCSVZeile[0] = date('Y-m-d', strtotime($arrCSVZeile[0])); // Buchungsdatum 
-			$arrCSVZeile[1] = date('Y-m-d', strtotime($arrCSVZeile[1])); // Valuta
-			
-			
-			# **********************************************************
-			# ***         Doppelte Leerzeichen entfernen             ***
-			# ********************************************************** 
-			# Gelegentlich kommt es vor, dass ein und dieselbe 
-			# Buchung in zwei verschiedenen CSV-Dateien unterschiedlich 
-			# ist, weil in einer der beiden Dateien (aus unbekannten 
-			# Gründen) zusätzliche Leerzeichen enthalten sind. Dadurch 
-			# wird diese Buchung als zwei verschiedene Buchungen 
-			# interpretiert und fälschlicherweise in die Datenbank 
-			# importiert. Die folgenden Zeilen filtern unnötige 
-			# Leerzeichen heraus. Dadurch werden diese Buchungen 
-			# korrigiert.  
-			// Feld 'Auftraggeber/Empfänger' bereinigen
-			$arrCSVZeile[2] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[2]) ); 
-			// Feld 'Buchungstyp' bereinigen
-			$arrCSVZeile[3] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[3]) );
-			// Feld 'Verwendungszweck' bereinigen
-			$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
-			
-			# **********************************************************
-			# ***         Komma gegen Punkt austauschen              ***
-			# ********************************************************** 
-			# Die Zahlenfelder: Komma gegen Punkt austauschen und 
-			# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
-			$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
-			$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
+		if ( $strBank_ausCSV == "ING-DiBa" ) {
+			foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
+				$Datenbankinsert  = "INSERT INTO `Buchungen` "
+							   ."(`Uploadnummer`, `Datensatznummer`, 
+								  `BankID`, `Buchungsdatum`, `Valuta`, 
+								  `AuftraggeberEmpfaenger`, `Buchungstyp`, 
+								  `Verwendungszweck`, `Betrag`, 
+								  `Waehrung`, `Saldo`, `CSV_Quelle`) "
+							   ."VALUES "
+							   ."(" 
+							   .":Uploadnummer, :Datensatznummer, :BankID, "
+							   .":Buchungsdatum, :Valuta, "
+							   .":AuftraggeberEmpfaenger, "
+							   .":Buchungstyp, :Verwendungszweck, :Betrag, "
+							   .":Waehrung, :Saldo, :CSV_Quelle "
+							   .") "
+							   ."ON DUPLICATE KEY UPDATE "
+							   ."Uploadnummer = VALUES(Uploadnummer), "
+							   ."Datensatznummer = VALUES(Datensatznummer), "
+							   ."BankID       = VALUES(BankID), "
+							   ."Buchungsdatum  = VALUES(Buchungsdatum), "
+							   ."Valuta       = VALUES(Valuta), "
+							   ."AuftraggeberEmpfaenger      = VALUES(AuftraggeberEmpfaenger), "
+							   ."Verwendungszweck 
+											  = VALUES(Verwendungszweck), "
+							   ."Betrag       = VALUES(Betrag), "
+							   ."Saldo        = VALUES(Saldo), "
+							   ."CSV_Quelle   = VALUES(CSV_Quelle); ";
+				# echo "<b>SQL: </b> . $Datenbankinsert . <br>";
 				
 				
-			$insCmd = $pdo->prepare($Datenbankinsert); 
-			$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
-			$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
-			$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
-			$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
-			$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
-			$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
-			$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
-			$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[4], PDO::PARAM_STR );
-			$insCmd->bindParam( ':Betrag', $arrCSVZeile[5], PDO::PARAM_INT );
-			$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
-			$insCmd->bindParam( ':Saldo', $arrCSVZeile[7], PDO::PARAM_INT );
-			$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
-			$insCmd->execute();
-		# Datensatznummer increment um eins erhöhen
-		$Datensatznummer++;
-		} 
+				# **********************************************************
+				# ***              Datumfelder anpassen                  ***
+				# ********************************************************** 
+				# Bereinigungen für den Datenbankimport 
+				# Die beiden Datums-Felder 'Buchungsdatum' und 'Valuta' 
+				# müssen Datenbankkonform sein. Hiermit werden sie 
+				# in das Datenbank-Format geändert
+				$arrCSVZeile[0] = date('Y-m-d', strtotime($arrCSVZeile[0])); // Buchungsdatum 
+				$arrCSVZeile[1] = date('Y-m-d', strtotime($arrCSVZeile[1])); // Valuta
+				
+				
+				# **********************************************************
+				# ***         CSV-Unterschiede abfangen                  ***
+				# ********************************************************** 
+				# Die ING-Diba hat 2016 oder 2017 das CSV-Format 
+				# geändert: es wurden zwei Spalten miteinander vertauscht
+				# Dies wird hiermit abgefangen. 
+				
+				# echo "<b>CSV-Version:</b> " . $CSV_Version . "<br>";
+				if ($strCSV_Quelle == "ING v2" ) {
+					$Hilfsvariable = $arrCSVZeile[5]; 
+					$arrCSVZeile[5] = $arrCSVZeile[7];
+					$arrCSVZeile[7] = $Hilfsvariable;
+				}
+				
+				
+				# **********************************************************
+				# ***         Doppelte Leerzeichen entfernen             ***
+				# ********************************************************** 
+				# Gelegentlich kommt es vor, dass ein und dieselbe 
+				# Buchung in zwei verschiedenen CSV-Dateien unterschiedlich 
+				# ist, weil in einer der beiden Dateien (aus unbekannten 
+				# Gründen) zusätzliche Leerzeichen enthalten sind. Dadurch 
+				# wird diese Buchung als zwei verschiedene Buchungen 
+				# interpretiert und fälschlicherweise in die Datenbank 
+				# importiert. Die folgenden Zeilen filtern unnötige 
+				# Leerzeichen heraus. Dadurch werden diese Buchungen 
+				# korrigiert.  
+				// Feld 'Auftraggeber/Empfänger' bereinigen
+				$arrCSVZeile[2] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[2]) ); 
+				// Feld 'Buchungstyp' bereinigen
+				$arrCSVZeile[3] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[3]) );
+				// Feld 'Verwendungszweck' bereinigen
+				$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
+				
+				# **********************************************************
+				# ***         Komma gegen Punkt austauschen              ***
+				# ********************************************************** 
+				# Die Zahlenfelder: Komma gegen Punkt austauschen und 
+				# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
+				$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
+				$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
+					
+					
+				$insCmd = $pdo->prepare($Datenbankinsert); 
+				$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+				$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+				$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+				$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
+				$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
+				$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[4], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Betrag', $arrCSVZeile[5], PDO::PARAM_INT );
+				$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Saldo', $arrCSVZeile[7], PDO::PARAM_INT );
+				$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				$insCmd->execute();
+			# Datensatznummer increment um eins erhöhen
+			$Datensatznummer++;
+			} // Ende der foreach-Schleife
+		} // Ende der if-Bedingung
 		
 		?>
 	
