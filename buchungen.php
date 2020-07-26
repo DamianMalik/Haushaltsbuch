@@ -175,8 +175,7 @@ if ($strSuchbegriff_SQL != '') {
 }
 $DBabfrage .= "
 			ORDER BY a.`Buchungsdatum` DESC, 
-					a.`Datensatznummer` DESC, 
-					a.`Datensatznummer` DESC; ";
+					 a.`Datensatznummer` DESC; ";
 $DBausgabe = $pdo->query($DBabfrage);
 #LIMIT 30; 
 
