@@ -60,8 +60,9 @@
 	$arrCSVPruefung[2][2] = 9; // Wird auf Fehler gesetzt
 	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
-	$strMusterTyp03 = '"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
-	$strMusterTyp03 = '\ufeff\"Datum\";Uhrzeit;Zeitzone;Name;Typ;Status;W\u00e4hrung;Brutto;Geb\u00fchr;Netto;Absender E-Mail-Adresse;Empf\u00e4nger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgeb\u00fchr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugeh\u00f6riger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;L\u00e4ndervorwahl;Auswirkung auf Guthaben';
+	$strMusterTyp03 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Kategorie;Verwendungszweck;Saldo;Währung;Betrag;Währung";
+	
+	
 	# Definiere Array
 	# $arrZeile = []; 
 	$arrZeile =  array();
@@ -108,7 +109,7 @@
 				if ($arrZeile[0] == 'Kontoname') $strKontotyp_ausCSV = $arrZeile[1];
 			}
 			
-			if ($numFeldanzahl == 9 ) {
+			if ($numFeldanzahl == 9 || $numFeldanzahl == 10 ) {
 				# Die Arrays-Elemente werden zu einem String zusammengesetzt
 				$strZusammensetzung = implode(";",$arrZeile); 
 				
@@ -125,11 +126,19 @@
 					# break;
 				}
 				
+				if ( $strZusammensetzung == $strMusterTyp03) {
+					$strCSV_Quelle = "ING v3";
+					# $arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
+					# Break beendet nicht das IF, sondern die While-Schleife
+					# break;
+				}
+				
 				# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
 				if ( $strZusammensetzung != $strMusterTyp01 AND $strZusammensetzung != $strMusterTyp02) {
 					$arrCSVDaten[] = $arrZeile;
 				}
 			}
+			
 		} // Ende der While-Schleife
 		
 		# echo "Überprüfung Bank wurde beendet" . "<br><hr>";
