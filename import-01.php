@@ -46,11 +46,11 @@
                        class="custom-file-input" 
                        name="CSVDatei" 
                        id="Dateiupload" 
-                       accept=".csv">
+                       accept=".csv" required>
 
                 <label class="custom-file-label" 
                        for="Dateiupload">CSV-Datei...</label>
-                <div class="invalid-feedback">Ungültige Datei!</div>
+                <div class="invalid-feedback">Datei auswählen!</div>
             </div>
             <!-- <div class="pt-3 w-50"> -->
             <div class="pt-3">
