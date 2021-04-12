@@ -22,7 +22,8 @@
 
 	<!-- Google Fonts -->
 	<!-- Font Type: Patrick Hand -->
-	<link href="https://fonts.googleapis.com/css?family=Bitter" rel="stylesheet"> 
+	<link href="https://fonts.googleapis.com/css?family=Bitter" 
+	      rel="stylesheet"> 
 
 </head>
 <body class="font-Bitter bg-light text-dark">
@@ -37,12 +38,11 @@
 	# ***        Parameter aus dem Feld $_FILES lesen        ***
 	# ********************************************************** 
 
-	# $filename  = $_FILES['CSVDatei']; 
-	$Dateiname = $_FILES['CSVDatei']['name'];       // Dateiname (ohne Laufwerk/Pfad)
-	$strDateityp = $_FILES['CSVDatei']['type'];       // Dateityp, z.B. "image/gif"
-	$size      = $_FILES['CSVDatei']['size'];       // Dateigröße in Byte
-	$uploaderr = $_FILES['CSVDatei']['error'];      // Fehlernummer (0 = kein Fehler)
-	$tmpfile   = $_FILES['CSVDatei']['tmp_name'];   // Name der lokalen, temporären Datei. Ist erforderlich für 
+	$Dateiname   = $_FILES['CSVDatei']['name'];     // Dateiname (ohne Laufwerk/Pfad)
+	$strDateityp = $_FILES['CSVDatei']['type'];     // Dateityp, z.B. "image/gif"
+	$size        = $_FILES['CSVDatei']['size'];     // Dateigröße in Byte
+	$uploaderr   = $_FILES['CSVDatei']['error'];    // Fehlernummer (0 = kein Fehler)
+	$tmpfile     = $_FILES['CSVDatei']['tmp_name']; // Name der lokalen, temporären Datei. Ist erforderlich für 
 	
 	
 	# **********************************************************
@@ -64,7 +64,6 @@
 	
 	
 	# Definiere Array
-	# $arrZeile = []; 
 	$arrZeile =  array();
 	$arrCSVDaten = array();
 	$numFeldanzahl = 0;
@@ -128,22 +127,21 @@
 				
 				if ( $strZusammensetzung == $strMusterTyp03) {
 					$strCSV_Quelle = "ING v3";
-					# $arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
+					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
 					# Break beendet nicht das IF, sondern die While-Schleife
 					# break;
 				}
 				
 				# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
-				if ( $strZusammensetzung != $strMusterTyp01 AND $strZusammensetzung != $strMusterTyp02) {
+				# Ausnahme: Überschrift-Zeilen werden übersprungen 
+				if ( $strZusammensetzung != $strMusterTyp01 
+				     AND $strZusammensetzung != $strMusterTyp02 
+				     AND $strZusammensetzung != $strMusterTyp03) {
 					$arrCSVDaten[] = $arrZeile;
 				}
 			}
-			
 		} // Ende der While-Schleife
-		
-		# echo "Überprüfung Bank wurde beendet" . "<br><hr>";
-	
-    fclose($datei); // Datei wird geschlossen
+	fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
 
 	# **********************************************************
@@ -158,7 +156,8 @@
 			# Zähle Felder in der Zeile
 			$numFeldanzahl = count($arrZeile);
 			
-			# Überprüfung ob die Felder 7=Brutto und 12=Transaktionscode lauten
+			# Überprüfung ob die Felder 7=Brutto und 12=Transaktionscode lauten 
+			# Falls ja, dann handelt es sich um eine CSV von PayPal 
 			if ($numFeldanzahl == 41) {
 				if ($arrZeile[7] == 'Brutto' AND $arrZeile[12] == 'Transaktionscode') {
 					$strCSV_Quelle = 'PayPal';
@@ -185,12 +184,8 @@
 		} // Ende der While-Schleife
 		
 		# echo "Überprüfung PayPal wurde beendet" . "<br><hr>";
-		
-    fclose($datei); // Datei wird geschlossen
+	fclose($datei); // Datei wird geschlossen
 	} // Ende der if-Bedingung
-	
-	# echo "<b>Es wurde folgende CSV-Quelle erkannt:</b> " . $strCSV_Quelle . "<br>";
-	# echo "<br><br>";
 	
 	
 	# **********************************************************
@@ -220,7 +215,6 @@
 		} // Ende der foreach-Schleife 
 	
 	# Falls die Datenbankabfrage leer ist: 
-	
 	if (empty($strKontonummer_ausDB)) { 
 				$intID_ausDB = '-1';
 	}
@@ -236,7 +230,7 @@
 	# **********************************************************
 	
 	$DBabfrage = "SELECT `Uploadnummer`
-				  FROM `Buchungen` 
+				  FROM   `Buchungen` 
 				  ORDER BY `Uploadnummer` DESC
 				  LIMIT 1;";
 	$DBausgabe = $pdo->query($DBabfrage);
@@ -248,8 +242,8 @@
 	# Uploadnummer festlegen
 	# Falls die Datenbankabfrage leer ist: 
 	if (empty($Uploadnummer_ausDB)) { 
-				$Uploadnummer_ausDB = 999; 
-				}
+		$Uploadnummer_ausDB = 999; 
+	}
 	# Die neue Uploadnummer um +1 erhöhen
 	$Uploadnummer_neu = $Uploadnummer_ausDB + 1;
 				
@@ -310,7 +304,6 @@
 					echo '<li class="list-group-item">';
 							if ( $strDateityp == 'text/csv' AND $uploaderr == 0 ) {
 								echo '<div class="alert alert-success" role="alert">Technische Prüfung in Ordnung</div>';
-								# echo '<span class="badge badge-success">OKAY</span>' . '<br>'; 
 								$arrCSVPruefung[1][0] = 1; // 1=OK; 9=Fehler
 							} else {
 								echo '<div class="alert alert-danger" role="alert">Technische Prüfung fehlerhaft</div>';
@@ -361,7 +354,6 @@
 							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
 							$arrCSVPruefung[2][4] = 1; // 1=OK; 2=Tolerabel
 						} else {
-							# echo '<span class="badge badge-warning">Kontonummer</span>' . '<br>'; 
 							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
 							$arrCSVPruefung[2][4] = 9; // 1=OK; 9=Fehler
 						}
@@ -414,7 +406,7 @@
 					
 					echo '<li class="list-group-item">';
 						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Datenbank-ID</span>' . '<br>'; 
+							echo '<span class="badge badge-success">Bank-ID</span>' . '<br>'; 
 							echo $intID_ausDB . '<br>';
 							$arrCSVPruefung[3][2] = 1; // 1=OK; 2=Tolerabel
 						} else {
@@ -459,26 +451,13 @@
 						}
 						echo '</li>';
 					
-					
-					/*
-					echo '<li class="list-group-item">';
-						echo '<span class="badge badge-secondary">letzte Upload Nummer</span>' . '<br>'; 
-						if ($Uploadnummer_ausDB == '999') {
-							echo 'noch kein Upload durchgeführt.' . '<br>';
-						} else {
-							echo $Uploadnummer_ausDB . '<br>';
-						}
-					echo '</li>';
-					* */
 					echo '<li class="list-group-item">';
 							echo '<span class="badge badge-secondary">Upload Nummer</span>' . '<br>'; 
 							if ($Uploadnummer_ausDB == '999') {
 								echo '1000' . '<br>';
 							} else {
-								# echo $Uploadnummer_ausDB . ' --> ' . $Uploadnummer_neu;
 								echo $Uploadnummer_neu;
 							}
-							# echo $Uploadnummer_neu . '<br>';
 						echo '</li>';
 					
 					
@@ -509,27 +488,17 @@
 		# sort($arrCSVPruefung, SORT_ASC);
 		# echo "<pre>\n"; var_dump($arrCSVPruefung); echo "</pre>\n";
 		
-	
-	
-		# Freigabe Import
-		# uneingeschränkter Import
+		
+		# Prüfung auf Freigabe Import
 		if ( $arrCSVPruefung[1][0] == 1 AND $arrCSVPruefung[2][0] == 1 AND $arrCSVPruefung[3][0] == 1 ) {
-			# echo '<div class="alert alert-success" role="alert">Uneingeschränkte Import-Freigabe</div>';
-			
 			echo '<div class="alert alert-success" role="alert">';
-			echo '<h4 class="alert-heading">Import-Freigabe</h4>';
-			echo '<p>Uneingeschränkte Freigabe für den CSV-Datenimport.</p>';
-			echo '<hr>';
-			echo '<p class="mb-0">Hier könnte stehen, dass die Daten importiert wurden.</p>';
+			echo '<h4 class="alert-heading">Datenbank-Import</h4>';
+			echo '<p>CSV-Datei in Datenbank importiert.</p>';
 			echo '</div>';
 		} else { 
-			# echo '<div class="alert alert-danger" role="alert">Keine Import-Freigabe</div>';
-			
 			echo '<div class="alert alert-danger" role="alert">';
 			echo '<h4 class="alert-heading">Keine Import-Freigabe</h4>';
 			echo '<p>Die CSV-Prüfung hat Fehler ergeben. Ein Datenimport ist nicht möglich.</p>';
-			echo '<hr>';
-			echo '<p class="mb-0">Hier könnte stehen, dass die Daten nicht importiert wurden.</p>';
 			echo '</div>';
 		}
 		
@@ -639,18 +608,16 @@
 							   .":Waehrung, :Saldo, :CSV_Quelle "
 							   .") "
 							   ."ON DUPLICATE KEY UPDATE "
-							   ."Uploadnummer = VALUES(Uploadnummer), "
-							   ."Datensatznummer = VALUES(Datensatznummer), "
-							   ."BankID       = VALUES(BankID), "
-							   ."Buchungsdatum  = VALUES(Buchungsdatum), "
-							   ."Valuta       = VALUES(Valuta), "
-							   ."AuftraggeberEmpfaenger      = VALUES(AuftraggeberEmpfaenger), "
-							   ."Verwendungszweck 
-											  = VALUES(Verwendungszweck), "
-							   ."Betrag       = VALUES(Betrag), "
-							   ."Saldo        = VALUES(Saldo), "
-							   ."CSV_Quelle   = VALUES(CSV_Quelle); ";
-				# echo "<b>SQL: </b> . $Datenbankinsert . <br>";
+							   ."Uploadnummer           = VALUES(Uploadnummer), "
+							   ."Datensatznummer        = VALUES(Datensatznummer), "
+							   ."BankID                 = VALUES(BankID), "
+							   ."Buchungsdatum          = VALUES(Buchungsdatum), "
+							   ."Valuta                 = VALUES(Valuta), "
+							   ."AuftraggeberEmpfaenger = VALUES(AuftraggeberEmpfaenger), "
+							   ."Verwendungszweck       = VALUES(Verwendungszweck), "
+							   ."Betrag                 = VALUES(Betrag), "
+							   ."Saldo                  = VALUES(Saldo), "
+							   ."CSV_Quelle             = VALUES(CSV_Quelle); ";
 				
 				
 				# **********************************************************
@@ -672,12 +639,18 @@
 				# Dies wird hiermit abgefangen. 
 				
 				# echo "<b>CSV-Version:</b> " . $CSV_Version . "<br>";
+				/*
 				if ($strCSV_Quelle == "ING v2" ) {
 					$Hilfsvariable = $arrCSVZeile[5]; 
 					$arrCSVZeile[5] = $arrCSVZeile[7];
 					$arrCSVZeile[7] = $Hilfsvariable;
 				}
-				
+				if ($strCSV_Quelle == "ING v3" ) {
+					$Hilfsvariable = $arrCSVZeile[6]; 
+					$arrCSVZeile[6] = $arrCSVZeile[8];
+					$arrCSVZeile[8] = $Hilfsvariable;
+				}
+				*/
 				
 				# **********************************************************
 				# ***         Doppelte Leerzeichen entfernen             ***
@@ -691,38 +664,83 @@
 				# importiert. Die folgenden Zeilen filtern unnötige 
 				# Leerzeichen heraus. Dadurch werden diese Buchungen 
 				# korrigiert.  
+				
 				// Feld 'Auftraggeber/Empfänger' bereinigen
 				$arrCSVZeile[2] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[2]) ); 
 				// Feld 'Buchungstyp' bereinigen
 				$arrCSVZeile[3] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[3]) );
+				
 				// Feld 'Verwendungszweck' bereinigen
-				$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
+				if ($strCSV_Quelle == "ING v1" || $strCSV_Quelle == "ING v2") {
+					$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
+				}
+				if ($strCSV_Quelle == "ING v3" ) {
+					$arrCSVZeile[5] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[5]) ); 
+				}
+				
 				
 				# **********************************************************
+				# ***          1000-er Punkt entfernen und               ***
 				# ***         Komma gegen Punkt austauschen              ***
 				# ********************************************************** 
 				# Die Zahlenfelder: Komma gegen Punkt austauschen und 
 				# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
-				$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
-				$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
-					
-					
+				if ($strCSV_Quelle == "ING v1" || $strCSV_Quelle == "ING v2") {
+					$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
+					$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
+				}
+				if ($strCSV_Quelle == "ING v3") {
+					$arrCSVZeile[6] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[6]));
+					$arrCSVZeile[8] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[8]));
+				}
+				
+				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
-				$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
-				$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
-				$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
-				$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
-				$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
-				$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
-				$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
-				$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[4], PDO::PARAM_STR );
-				$insCmd->bindParam( ':Betrag', $arrCSVZeile[5], PDO::PARAM_INT );
-				$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
-				$insCmd->bindParam( ':Saldo', $arrCSVZeile[7], PDO::PARAM_INT );
-				$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				if ($strCSV_Quelle == "ING v1") {
+					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+					$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
+					$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
+					$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[4], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Betrag', $arrCSVZeile[5], PDO::PARAM_INT );
+					$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Saldo', $arrCSVZeile[7], PDO::PARAM_INT );
+					$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				}
+				if ($strCSV_Quelle == "ING v2") {
+					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+					$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
+					$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
+					$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[4], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Betrag', $arrCSVZeile[7], PDO::PARAM_INT );
+					$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Saldo', $arrCSVZeile[5], PDO::PARAM_INT );
+					$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				}
+				if ($strCSV_Quelle == "ING v3") {
+					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+					$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
+					$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
+					$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[5], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Betrag', $arrCSVZeile[8], PDO::PARAM_INT );
+					$insCmd->bindParam( ':Waehrung', $arrCSVZeile[7], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Saldo', $arrCSVZeile[6], PDO::PARAM_INT );
+					$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				}
 				$insCmd->execute();
-			# Datensatznummer increment um eins erhöhen
-			$Datensatznummer++;
+				# Datensatznummer increment um eins erhöhen
+				$Datensatznummer++;
 			} // Ende der foreach-Schleife
 		} // Ende der if-Bedingung
 		
@@ -733,9 +751,15 @@
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" 
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" 
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" 
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" 
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" 
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" 
+        crossorigin="anonymous"></script>
 
 </body>
 </html>
