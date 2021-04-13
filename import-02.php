@@ -37,13 +37,24 @@
 	# **********************************************************
 	# ***        Parameter aus dem Feld $_FILES lesen        ***
 	# ********************************************************** 
-
-	$Dateiname   = $_FILES['CSVDatei']['name'];     // Dateiname (ohne Laufwerk/Pfad)
-	$strDateityp = $_FILES['CSVDatei']['type'];     // Dateityp, z.B. "image/gif"
-	$size        = $_FILES['CSVDatei']['size'];     // Dateigröße in Byte
-	$uploaderr   = $_FILES['CSVDatei']['error'];    // Fehlernummer (0 = kein Fehler)
-	$tmpfile     = $_FILES['CSVDatei']['tmp_name']; // Name der lokalen, temporären Datei. Ist erforderlich für 
 	
+	# Überprüfung, ob eine Datei hochgeladen wurde und Ermittlung
+	# der Dateiparameter. Andernfalls Fehlerausgabe. 
+	if (isset($_FILES['CSVDatei']) && $_FILES['CSVDatei']['tmp_name'] != ''){
+		if(is_uploaded_file($_FILES['CSVDatei']['tmp_name'])){  
+			$Dateiname   = $_FILES['CSVDatei']['name'];     // Dateiname (ohne Laufwerk/Pfad)
+			$strDateityp = $_FILES['CSVDatei']['type'];     // Dateityp, z.B. "image/gif"
+			$size        = $_FILES['CSVDatei']['size'];     // Dateigröße in Byte
+			$uploaderr   = $_FILES['CSVDatei']['error'];    // Fehlernummer (0 = kein Fehler)
+			$tmpfile     = $_FILES['CSVDatei']['tmp_name']; // Name der lokalen, temporären Datei. Ist erforderlich für 
+		}
+	} else {
+		echo '<div class="container-fluid">'; 
+			echo '<span class="badge badge-warning">Fehler</span> '; 
+			echo 'Es wurde keine Datei hochgeladen';
+		echo '</div>'; 
+		exit;
+	}
 	
 	# **********************************************************
 	# ***              Definition Variablen                  ***
@@ -80,7 +91,7 @@
 			
 			# Zähle Felder in der Zeile
 			$numFeldanzahl = count($arrZeile);
-			# echo "<b>Feldanzahl:</b> " . $numFeldanzahl . "<br>";
+			
 			
 			if ($numFeldanzahl == 2 ) {
 				if ($arrZeile[0] == 'Konto') {
@@ -745,9 +756,7 @@
 		} // Ende der if-Bedingung
 		
 		?>
-	
-	
-</div>
+	</div>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
