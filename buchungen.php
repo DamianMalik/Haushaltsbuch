@@ -388,9 +388,10 @@ $DBausgabe = $pdo->query($DBabfrage);
 				<tr>
 					<th style="width: 15%">Bank</th>
 					<th style="width: 10%">Datum</th>
-					<th style="width: 25%">Auftraggeber / Empfänger</th>
-					<th style="width: 40%">Verwendungszweck</th>
-					<th style="width: 10%" class="text-right">Betrag</th>
+					<th style="width: 20%">Auftraggeber / Empfänger</th>
+					<th style="width: 35%">Verwendungszweck</th>
+					<th style="width: 10%" class="text-right">Soll</th>
+					<th style="width: 10%" class="text-right">Haben</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -413,11 +414,21 @@ $DBausgabe = $pdo->query($DBabfrage);
 							echo $zeile['Verwendungszweck'];
 						echo '</td>';
 						echo '<td class="text-right">';
-							if ($zeile['Betrag'] > 0) $strFarbe = '#00B233'; // grüne Farbe
-							if ($zeile['Betrag'] < 0) $strFarbe = '#FF0000'; // rote Farbe
-							echo "<font color='" . $strFarbe . "'>" 
+							if ($zeile['Betrag'] < 0) {
+								$strFarbe = '#FF0000'; // rote Farbe
+								echo "<font color='" . $strFarbe . "'>" 
 								 . number_format($zeile['Betrag'], 2, ",", ".")
 								 . "</font>";
+							 }
+						echo '</td>';
+						echo '<td class="text-right">';
+							if ($zeile['Betrag'] > 0) { 
+								$strFarbe = '#00B233'; // grüne Farbe
+								echo "<font color='" . $strFarbe . "'>" 
+								 . "+"
+								 . number_format($zeile['Betrag'], 2, ",", ".")
+								 . "</font>";
+							 }
 						echo '</td>';
 					echo '</tr>';
 				}
