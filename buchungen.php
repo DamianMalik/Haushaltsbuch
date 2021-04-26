@@ -388,31 +388,51 @@ $DBausgabe = $pdo->query($DBabfrage);
 				<tr>
 					<th style="width: 15%">Bank</th>
 					<th style="width: 10%">Datum</th>
-					<th style="width: 20%">Auftraggeber / Empfänger</th>
-					<th style="width: 35%">Verwendungszweck</th>
-					<th style="width: 10%" class="text-right">Soll</th>
-					<th style="width: 10%" class="text-right">Haben</th>
+					<th style="width: 53%">Auftraggeber / Empfänger<br>Verwendungszweck</th>
+					<th style="width: 11%" class="text-right">Soll</th>
+					<th style="width: 11%" class="text-right">Haben</th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php
 				foreach($DBausgabe as $zeile) { 
 					echo '<tr>';
+						# Spalte 1: Bank
 						echo '<td>';
 							echo $zeile['Bank'];
 						echo '</td>';
+						
+						# Spalte 2: Datum
 						echo '<td>'; 
 							echo date('d.m.Y', strtotime($zeile['Buchungsdatum'])); 
 						echo '</td>';
+						
+						# Spalte 3: Auftraggeber / Empfänger und Verwendungszweck
 						echo '<td>';
-							echo '<div><span class="badge badge-pill badge-info">'
+							if ($zeile['Betrag'] < 0) {
+								echo '<div><span class="badge badge-pill badge-danger mb-1">'
 									. $zeile['Buchungstyp']
 									. '</span></div>'; 
-							echo $zeile['AuftraggeberEmpfaenger'];
+							} else {
+								echo '<div><span class="badge badge-pill badge-success mb-1">'
+									. $zeile['Buchungstyp']
+									. '</span></div>'; 
+							}
+							echo '<p class="font-weight-bolder mb-1">' . $zeile['AuftraggeberEmpfaenger'] . '</p>';
+							
+							echo '<p class="font-weight-light mb-1">' 
+							     . $zeile['Verwendungszweck'] 
+							     . '</p>';
+							/*
+							echo htmlspecialchars(
+							$zeile['Verwendungszweck'],
+							ENT_QUOTES | ENT_HTML5 | ENT_DISALLOWED | ENT_SUBSTITUTE,
+							'UTF-8'
+							);
+							*/
 						echo '</td>';
-						echo '<td>';
-							echo $zeile['Verwendungszweck'];
-						echo '</td>';
+						
+						# Spalte 4: Soll
 						echo '<td class="text-right">';
 							if ($zeile['Betrag'] < 0) {
 								$strFarbe = '#FF0000'; // rote Farbe
@@ -421,6 +441,8 @@ $DBausgabe = $pdo->query($DBabfrage);
 								 . "</font>";
 							 }
 						echo '</td>';
+						
+						# Spalte 5: Haben
 						echo '<td class="text-right">';
 							if ($zeile['Betrag'] > 0) { 
 								$strFarbe = '#00B233'; // grüne Farbe
