@@ -66,12 +66,13 @@
 	$strInhaber_ausCSV = 'unbekannt';
 	$strKontonummer_ausCSV = 'unbekannt'; 
 	$strKontotyp_ausCSV = 'unbekannt';
-	$intID_ausDB = -8432;
+	# $intID_ausDB = -8432;
 	$arrCSVPruefung = array(); // Definition Array // 1=OK; 9=Fehler
 	$arrCSVPruefung[2][2] = 9; // Wird auf Fehler gesetzt
 	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 	$strMusterTyp03 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Kategorie;Verwendungszweck;Saldo;Währung;Betrag;Währung";
+	$strMusterTyp90 = '﻿"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
 	
 	
 	# Definiere Array
@@ -164,6 +165,7 @@
 			# Die folgende Zeile beseitigt UTF-8 Probleme (kommt hier nicht zur Anwendung!)
 			# $arrZeile = array_map("utf8_encode", $arrZeile); 
 			
+			
 			# Zähle Felder in der Zeile
 			$numFeldanzahl = count($arrZeile);
 			
@@ -183,14 +185,18 @@
 						$strKontotyp_ausCSV = 'Privat'; 
 				}
 				# Überprüfung des Inhalts: ist die CSV inhaltlich valide?
-				if ( $arrZeile[40] == 'Soll' || $arrZeile[40] == 'Haben') {
-					# $intImportStatus = 1;
+				if ( $arrZeile[40] == 'Auswirkung auf Guthaben' ) {
 					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
-				} /* else {
-					# $intImportStatus = 9;
-					# $strImportStatus = 'CSV Daten nicht valide oder CSV-Datei enthält keine Daten';
-				}
-				*/
+				} 
+			}
+			
+			# Die Arrays-Elemente werden zu einem String zusammengesetzt
+			$strZusammensetzung = implode(";",$arrZeile); 
+			
+			# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
+			# Ausnahme: Überschrift-Zeilen werden übersprungen 
+			if ( $strZusammensetzung != $strMusterTyp90 ) {
+				$arrCSVDaten[] = $arrZeile;
 			}
 		} // Ende der While-Schleife
 		
@@ -504,7 +510,7 @@
 		if ( $arrCSVPruefung[1][0] == 1 AND $arrCSVPruefung[2][0] == 1 AND $arrCSVPruefung[3][0] == 1 ) {
 			echo '<div class="alert alert-success" role="alert">';
 			echo '<h4 class="alert-heading">Datenbank-Import</h4>';
-			echo '<p>CSV-Datei in Datenbank importiert.</p>';
+			echo '<p>CSV-Datei wurde in Datenbank importiert.</p>';
 			echo '</div>';
 		} else { 
 			echo '<div class="alert alert-danger" role="alert">';
@@ -602,6 +608,9 @@
 		
 		$Datensatznummer = 1000;
 		
+		# **********************************************************
+		# ***                     ING-DiBa                       ***
+		# ********************************************************** 
 		if ( $strBank_ausCSV == "ING-DiBa" ) {
 			foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
 				$Datenbankinsert  = "INSERT INTO `Buchungen` "
@@ -706,6 +715,19 @@
 				}
 				
 				
+				# **********************************************************
+				# ***       Datensätze für Import testweise ausgeben     ***
+				# ********************************************************** 
+				echo "<b>Datensatz</b>"
+					. $arrCSVZeile[0]
+					. " | "
+					. $arrCSVZeile[1]
+					. " | "
+					. $arrCSVZeile[2]
+				     . " | ";
+				
+				
+				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
 				if ($strCSV_Quelle == "ING v1") {
 					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
@@ -755,6 +777,191 @@
 			} // Ende der foreach-Schleife
 		} // Ende der if-Bedingung
 		
+		
+		# **********************************************************
+		# ***                      PayPal                        ***
+		# ********************************************************** 
+		if ( $strBank_ausCSV == "PayPal" ) {
+			foreach ( $arrCSVDaten as $arrCSVZeile ) {
+				$Datenbankinsert  = "INSERT INTO `Buchungen` "
+							   ."(`Uploadnummer`, `Datensatznummer`, 
+								  `BankID`, `Buchungsdatum`, `Valuta`, 
+								  `AuftraggeberEmpfaenger`, `Buchungstyp`, 
+								  `Verwendungszweck`, `Betrag`, 
+								  `Waehrung`, `Saldo`, `CSV_Quelle`) "
+							   ."VALUES "
+							   ."(" 
+							   .":Uploadnummer, :Datensatznummer, :BankID, "
+							   .":Buchungsdatum, :Valuta, "
+							   .":AuftraggeberEmpfaenger, "
+							   .":Buchungstyp, :Verwendungszweck, :Betrag, "
+							   .":Waehrung, :Saldo, :CSV_Quelle "
+							   .") "
+							   ."ON DUPLICATE KEY UPDATE "
+							   ."Uploadnummer           = VALUES(Uploadnummer), "
+							   ."Datensatznummer        = VALUES(Datensatznummer), "
+							   ."BankID                 = VALUES(BankID), "
+							   ."Buchungsdatum          = VALUES(Buchungsdatum), "
+							   ."Valuta                 = VALUES(Valuta), "
+							   ."AuftraggeberEmpfaenger = VALUES(AuftraggeberEmpfaenger), "
+							   ."Verwendungszweck       = VALUES(Verwendungszweck), "
+							   ."Betrag                 = VALUES(Betrag), "
+							   ."Saldo                  = VALUES(Saldo), "
+							   ."CSV_Quelle             = VALUES(CSV_Quelle); ";
+				
+				
+			# **********************************************************
+			# ***                  PayPal Felder                     ***
+			# ********************************************************** 
+			# Feld-Nr. und Feldbezeichnung
+			# 0	Datum
+			# 1	Uhrzeit
+			# 2	Zeitzone
+			# 3	Name
+			# 4	Typ
+			# 5	Status
+			# 6	Währung
+			# 7	Brutto
+			# 8	Gebühr
+			# 9	Netto
+			# 10 Absender E-Mail-Adresse
+			# 11 Empfänger E-Mail-Adresse
+			# 12 Transaktionscode
+			# 13 Lieferadresse
+			# 14 Adress-Status
+			# 15 Artikelbezeichnung
+			# 16 Artikelnummer
+			# 17 Versand- und Bearbeitungsgebühr
+			# 18 Versicherungsbetrag
+			# 19 Umsatzsteuer
+			# 20 Option 1 Name
+			# 21 Option 1 Wert
+			# 22 Option 2 Name
+			# 23 Option 2 Wert
+			# 24 Zugehöriger Transaktionscode
+			# 25 Rechnungsnummer
+			# 26 Zollnummer
+			# 27 Anzahl
+			# 28 Empfangsnummer
+			# 29 Guthaben
+			# 30 Adresszeile 1
+			# 31 Adresszusatz
+			# 32 Ort
+			# 33 Bundesland
+			# 34 PLZ
+			# 35 Land
+			# 36 Telefon
+			# 37 Betreff
+			# 38 Hinweis
+			# 39 Ländervorwahl
+			# 40 Auswirkung auf Guthaben
+				
+				# **********************************************************
+				# ***              Datumfelder anpassen                  ***
+				# ********************************************************** 
+				# Bereinigungen für den Datenbankimport 
+				# Die beiden Datums-Felder 'Buchungsdatum' und 'Valuta' 
+				# müssen Datenbankkonform sein. Hiermit werden sie 
+				# in das Datenbank-Format geändert
+				$arrCSVZeile[0] = date('Y-m-d', strtotime($arrCSVZeile[0])); // Buchungsdatum 
+				$arrCSVZeile[1] = date('Y-m-d', strtotime($arrCSVZeile[0])); // Valuta
+				
+				
+				# **********************************************************
+				# ***          Auftraggeber / Empfänger anpassen         ***
+				# ********************************************************** 
+				# Coalesce: falls Feld `Name` leer ist: dann wird das Feld 
+				# `Absender` verwendet. Falls dies ebenfalls leer ist, 
+				# wird Feld `Empfänger` verwendet.
+				$arrCSVZeile[3] = $arrCSVZeile[3] ?: $arrCSVZeile[10];
+				$arrCSVZeile[3] = $arrCSVZeile[3] ?: $arrCSVZeile[11];
+				
+				
+				# Bereinigung um Textpassage bei Buchungen von E-Bay
+				if ($arrCSVZeile[3] == "Um die Kontaktdaten zu erhalten, gehen Sie zu den Details Ihrer Bestellung auf Mein eBay.") {
+					$arrCSVZeile[3] = $arrCSVZeile[11];
+				}
+				
+				
+				# **********************************************************
+				# ***              Verwendungszweck anpassen             ***
+				# ********************************************************** 
+				# Textpassage "Was wird bezahlt?" löschen
+				$arrCSVZeile[15] = str_replace('Was wird bezahlt? ', '', $arrCSVZeile[15]);
+				
+				# Emojis werden in der CSV-Datei von Paypal als 
+				# Fragezeichen-Symbol dargestellt (z.B. "�️"). 
+				# Damit diese nicht in die Datenbank importiert werden,  
+				# müssen sie herausgefiltert werden. 
+				$arrCSVZeile[15] = preg_replace('![^0-9a-zA-ZäöüÄÖÜ\ ]!', '', strip_tags(htmlentities($arrCSVZeile[15]))) ;
+				# $arrCSVZeile[38] = preg_replace('![^0-9a-zA-ZäöüÄÖÜ\ ]!', '', strip_tags(htmlentities($arrCSVZeile[38]))) ;
+				$arrCSVZeile[38] = preg_replace('/[�]+/u', '', $arrCSVZeile[38]) ;
+				
+				# Transaktionscode in Artikelbezeichnung einfügen
+				if ($arrCSVZeile[15] == "") {
+					$arrCSVZeile[15] = "Transaktion " . $arrCSVZeile[12];
+				} else {
+					$arrCSVZeile[15] =  $arrCSVZeile[15] . " | Transaktion " . $arrCSVZeile[12];
+				}
+				
+				# Transaktionscode in Artikelbezeichnung einfügen
+				if ($arrCSVZeile[24] <> "") {
+					$arrCSVZeile[15] = $arrCSVZeile[15] . " | zugehörige Transaktion " . $arrCSVZeile[24];
+				}
+				
+				if ($arrCSVZeile[38] != "") {
+					$arrCSVZeile[15] = $arrCSVZeile[15] . " | " . $arrCSVZeile[38];
+				}
+				
+				
+				# **********************************************************
+				# ***              Betrag und Saldo anpassen             ***
+				# ********************************************************** 
+				# Die Zahlenfelder: Komma gegen Punkt austauschen und 
+				# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
+				$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
+				$arrCSVZeile[29] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[29]));
+				
+				
+				# **********************************************************
+				# ***       Datensätze für Import testweise ausgeben     ***
+				# ********************************************************** 
+				echo "<b>Datensatz</b>"
+					. $arrCSVZeile[0]
+					. " | "
+					. $arrCSVZeile[0]
+					. " | "
+					. $arrCSVZeile[3]
+					. " | "
+					. $arrCSVZeile[4]
+					. " | "
+					. $arrCSVZeile[15]
+					. " | "
+					. $arrCSVZeile[7]
+					. " | "
+					. $arrCSVZeile[6]
+					. " | "
+					. $arrCSVZeile[29]
+					. " | ";
+				
+				$insCmd = $pdo->prepare($Datenbankinsert); 
+				$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+				$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+				$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+				$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Valuta', $arrCSVZeile[0], PDO::PARAM_STR );
+				$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[3] );
+				$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[4], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[15], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Betrag', $arrCSVZeile[7], PDO::PARAM_INT );
+				$insCmd->bindParam( ':Waehrung', $arrCSVZeile[6], PDO::PARAM_STR );
+				$insCmd->bindParam( ':Saldo', $arrCSVZeile[29], PDO::PARAM_INT );
+				$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				$insCmd->execute();
+				# Datensatznummer increment um eins erhöhen
+				$Datensatznummer++;
+			} // Ende der foreach-Schleife
+		} // Ende der if-Bedingung
 		?>
 	</div>
 
