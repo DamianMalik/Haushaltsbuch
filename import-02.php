@@ -519,90 +519,10 @@
 			echo '</div>';
 		}
 		
-		# **********************************************************
-		# ***                                                    ***
-		# ***                  Datenbereinigung                  ***
-		# ***                                                    ***
-		# **********************************************************
-		
-		
-		# **********************************************************
-		# ***              Sortierung anpassen                  ***
-		# ********************************************************** 
-		# die Datensätzte von ING-DiBa liegen in 
-		# absteigender Reihenfolge vor. Sortierung wird umgekehrt. 
-		/*
-		$arrCSVDaten_DESC = array(); 
-		if ( $strBank_ausCSV == "ING-DiBa" ) {
-			$arrCSVDaten_DESC = array_reverse($arrCSVDaten);
-		}
-		*/
-		
-		# Die Nachbearbeitung wird nun direkt beim DatenbankInsert vorgenommen
-		/*
-		if ( $strBank_ausCSV == "ING-DiBa" ) {
-			echo "<h1>arrCSVDaten</h1>";
-			# echo "<pre>\n"; var_dump($arrCSVDaten); echo "</pre>\n";
-			# NACHBEARBEITUNG aller ELEMENTE
-			
-			
-			foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
-			# foreach ( $arrCSVDaten as $arrCSVZeile ) {
-				# **********************************************************
-				# ***              Datumfelder anpassen                  ***
-				# ********************************************************** 
-				# Bereinigungen für den Datenbankimport 
-				# Die beiden Datums-Felder 'Buchungsdatum' und 'Valuta' 
-				# müssen Datenbankkonform sein. Hiermit werden sie 
-				# in das Datenbank-Format geändert
-				$arrCSVZeile[0] = date('Y-m-d', strtotime($arrCSVZeile[0])); // Buchungsdatum 
-				$arrCSVZeile[1] = date('Y-m-d', strtotime($arrCSVZeile[1])); // Valuta
-				
-				
-				# **********************************************************
-				# ***         Doppelte Leerzeichen entfernen             ***
-				# ********************************************************** 
-				# Gelegentlich kommt es vor, dass ein und dieselbe 
-				# Buchung in zwei verschiedenen CSV-Dateien unterschiedlich 
-				# ist, weil in einer der beiden Dateien (aus unbekannten 
-				# Gründen) zusätzliche Leerzeichen enthalten sind. Dadurch 
-				# wird diese Buchung als zwei verschiedene Buchungen 
-				# interpretiert und fälschlicherweise in die Datenbank 
-				# importiert. Die folgenden Zeilen filtern unnötige 
-				# Leerzeichen heraus. Dadurch werden diese Buchungen 
-				# korrigiert.  
-				// Feld 'Auftraggeber/Empfänger' bereinigen
-				$arrCSVZeile[2] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[2]) ); 
-				// Feld 'Buchungstyp' bereinigen
-				$arrCSVZeile[3] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[3]) );
-				// Feld 'Verwendungszweck' bereinigen
-				$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
-				
-				# Überflüssige Leerzeichen am Zeilenanfang und 
-				# Zeilenende entfernen
-				$arrCSVZeile[2] = trim($arrCSVZeile[2]);
-				$arrCSVZeile[4] = trim($arrCSVZeile[4]);
-				
-				
-				# **********************************************************
-				# ***         Komma gegen Punkt austauschen              ***
-				# ********************************************************** 
-				# Die Zahlenfelder: Komma gegen Punkt austauschen und 
-				# den 1000-er Punkt rausnehmen. Felder `Betrag` und `Saldo`
-				$arrCSVZeile[5] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[5]));
-				$arrCSVZeile[7] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[7]));
-				
-				foreach ($arrCSVZeile as $abc) {
-					echo "<b>Zelle</b>: " . $abc . "<br>";
-				}
-				echo "<hr>";
-			}
-		}
-		*/
 		
 		# **********************************************************
 		# ***                                                    ***
-		# ***                  Datenbankinsert                   ***
+		# ***                  Datenbankimport                   ***
 		# ***                                                    ***
 		# **********************************************************
 		
@@ -652,27 +572,6 @@
 				
 				
 				# **********************************************************
-				# ***         CSV-Unterschiede abfangen                  ***
-				# ********************************************************** 
-				# Die ING-Diba hat 2016 oder 2017 das CSV-Format 
-				# geändert: es wurden zwei Spalten miteinander vertauscht
-				# Dies wird hiermit abgefangen. 
-				
-				# echo "<b>CSV-Version:</b> " . $CSV_Version . "<br>";
-				/*
-				if ($strCSV_Quelle == "ING v2" ) {
-					$Hilfsvariable = $arrCSVZeile[5]; 
-					$arrCSVZeile[5] = $arrCSVZeile[7];
-					$arrCSVZeile[7] = $Hilfsvariable;
-				}
-				if ($strCSV_Quelle == "ING v3" ) {
-					$Hilfsvariable = $arrCSVZeile[6]; 
-					$arrCSVZeile[6] = $arrCSVZeile[8];
-					$arrCSVZeile[8] = $Hilfsvariable;
-				}
-				*/
-				
-				# **********************************************************
 				# ***         Doppelte Leerzeichen entfernen             ***
 				# ********************************************************** 
 				# Gelegentlich kommt es vor, dass ein und dieselbe 
@@ -718,6 +617,7 @@
 				# **********************************************************
 				# ***       Datensätze für Import testweise ausgeben     ***
 				# ********************************************************** 
+				/*
 				echo "<b>Datensatz</b>"
 					. $arrCSVZeile[0]
 					. " | "
@@ -725,8 +625,11 @@
 					. " | "
 					. $arrCSVZeile[2]
 				     . " | ";
+				*/
 				
-				
+				# **********************************************************
+				# ***         Datensätze in DB schreiben                 ***
+				# ********************************************************** 
 				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
 				if ($strCSV_Quelle == "ING v1") {
@@ -810,51 +713,51 @@
 							   ."CSV_Quelle             = VALUES(CSV_Quelle); ";
 				
 				
-			# **********************************************************
-			# ***                  PayPal Felder                     ***
-			# ********************************************************** 
-			# Feld-Nr. und Feldbezeichnung
-			# 0	Datum
-			# 1	Uhrzeit
-			# 2	Zeitzone
-			# 3	Name
-			# 4	Typ
-			# 5	Status
-			# 6	Währung
-			# 7	Brutto
-			# 8	Gebühr
-			# 9	Netto
-			# 10 Absender E-Mail-Adresse
-			# 11 Empfänger E-Mail-Adresse
-			# 12 Transaktionscode
-			# 13 Lieferadresse
-			# 14 Adress-Status
-			# 15 Artikelbezeichnung
-			# 16 Artikelnummer
-			# 17 Versand- und Bearbeitungsgebühr
-			# 18 Versicherungsbetrag
-			# 19 Umsatzsteuer
-			# 20 Option 1 Name
-			# 21 Option 1 Wert
-			# 22 Option 2 Name
-			# 23 Option 2 Wert
-			# 24 Zugehöriger Transaktionscode
-			# 25 Rechnungsnummer
-			# 26 Zollnummer
-			# 27 Anzahl
-			# 28 Empfangsnummer
-			# 29 Guthaben
-			# 30 Adresszeile 1
-			# 31 Adresszusatz
-			# 32 Ort
-			# 33 Bundesland
-			# 34 PLZ
-			# 35 Land
-			# 36 Telefon
-			# 37 Betreff
-			# 38 Hinweis
-			# 39 Ländervorwahl
-			# 40 Auswirkung auf Guthaben
+				# **********************************************************
+				# ***                  PayPal Felder                     ***
+				# ********************************************************** 
+				# Feld-Nr. und Feldbezeichnung
+				# 0	Datum
+				# 1	Uhrzeit
+				# 2	Zeitzone
+				# 3	Name
+				# 4	Typ
+				# 5	Status
+				# 6	Währung
+				# 7	Brutto
+				# 8	Gebühr
+				# 9	Netto
+				# 10 Absender E-Mail-Adresse
+				# 11 Empfänger E-Mail-Adresse
+				# 12 Transaktionscode
+				# 13 Lieferadresse
+				# 14 Adress-Status
+				# 15 Artikelbezeichnung
+				# 16 Artikelnummer
+				# 17 Versand- und Bearbeitungsgebühr
+				# 18 Versicherungsbetrag
+				# 19 Umsatzsteuer
+				# 20 Option 1 Name
+				# 21 Option 1 Wert
+				# 22 Option 2 Name
+				# 23 Option 2 Wert
+				# 24 Zugehöriger Transaktionscode
+				# 25 Rechnungsnummer
+				# 26 Zollnummer
+				# 27 Anzahl
+				# 28 Empfangsnummer
+				# 29 Guthaben
+				# 30 Adresszeile 1
+				# 31 Adresszusatz
+				# 32 Ort
+				# 33 Bundesland
+				# 34 PLZ
+				# 35 Land
+				# 36 Telefon
+				# 37 Betreff
+				# 38 Hinweis
+				# 39 Ländervorwahl
+				# 40 Auswirkung auf Guthaben
 				
 				# **********************************************************
 				# ***              Datumfelder anpassen                  ***
@@ -926,6 +829,7 @@
 				# **********************************************************
 				# ***       Datensätze für Import testweise ausgeben     ***
 				# ********************************************************** 
+				/*
 				echo "<b>Datensatz</b>"
 					. $arrCSVZeile[0]
 					. " | "
@@ -943,6 +847,12 @@
 					. " | "
 					. $arrCSVZeile[29]
 					. " | ";
+				*/
+				
+				
+				# **********************************************************
+				# ***         Datensätze in DB schreiben                 ***
+				# ********************************************************** 
 				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
 				$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
