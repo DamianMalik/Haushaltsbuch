@@ -19,6 +19,8 @@
                 <a class="nav-link" 
                    href="import-01.php">CSV-Import</a>
             </li>
+            <?php
+            /* Der Menüpunkt "Filter" wird herausgenommen, siehe #13
             <li class="nav-item">
                 <!-- <a class="nav-link disabled" href="#">Filter</a> -->
                 <a class="nav-link disabled" 
@@ -26,14 +28,20 @@
                    tabindex="-1" 
                    aria-disabled="true">Filter</a>
             </li>
+            */
+            ?>
             <li class="nav-item">
                 <a class="nav-link" 
                    href="buchungen.php">Buchungen</a>
             </li>
+            <?php
+            /*
             <li class="nav-item">
                 <a class="nav-link disabled" 
                    href="#">Auswertung</a>
             </li>
+            */ 
+            ?>
         </ul>
     </div>
 </nav>
