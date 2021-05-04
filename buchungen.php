@@ -79,7 +79,8 @@ if(isset($_POST['Suchbegriff'])) {
 # $Suchbegriff = "%" . $Suchbegriff . "%";
 # $strSuchbegriff_SQL = "%" . $strSuchbegriff_aus_POST . "%";
 # Nur Suchbegriffe mit 3 oder mehr Zeichen werden verarbeitet
-if (strlen($strSuchbegriff_aus_POST) >= '3') {
+$numMinimaleAnzahlZeichen = '3';
+if (strlen($strSuchbegriff_aus_POST) >= $numMinimaleAnzahlZeichen) {
 	$strSuchbegriff_SQL = "%" . $strSuchbegriff_aus_POST . "%";
 } else {
 	$strSuchbegriff_aus_POST = "";
@@ -409,6 +410,7 @@ $DBausgabe = $pdo->query($DBabfrage);
 						
 						# Spalte 3: Auftraggeber / Empfänger und Verwendungszweck
 						echo '<td>';
+							# Verwendungszweck
 							if ($zeile['Betrag'] < 0) {
 								echo '<div><span class="badge badge-pill badge-danger mb-1">'
 									. $zeile['Buchungstyp']
@@ -418,18 +420,44 @@ $DBausgabe = $pdo->query($DBabfrage);
 									. $zeile['Buchungstyp']
 									. '</span></div>'; 
 							}
-							echo '<p class="font-weight-bolder mb-1">' . $zeile['AuftraggeberEmpfaenger'] . '</p>';
 							
+							if (strlen($strSuchbegriff_aus_POST) >= $numMinimaleAnzahlZeichen) { 
+								# Für den Suchwort/Textmarker wird das Suchwort um 
+								# die TAGs <mark> und </mark> ergänzt. Hierfür eignet
+								# sich ein regulärer Ausdruck 
+								$strSuchbegriff_RegEXE = '/(\b'
+														 .$strSuchbegriff_aus_POST
+														 .'|\B'
+														 .$strSuchbegriff_aus_POST
+														 .')/ui';
+								# RegExe 01: (\b(schlüsselwort)|\B(schlüsselwort))    3 Treffer / 40 Schritte 
+								# RegExe 02: (\bschlüsselwort\b|\Bschlüsselwort\B)    3 Treffer / 36 Schritte 
+								# RegExe 03: (\bschlüsselwort|\Bschlüsselwort)        3 Treffer / 33 Schritte 
+								$substitution = '<mark>$1</mark>';
+								$zeile['AuftraggeberEmpfaenger'] 
+										= preg_replace($strSuchbegriff_RegEXE, 
+													   $substitution, 
+													   $zeile['AuftraggeberEmpfaenger']);
+							}
+							echo '<p class="font-weight-bolder mb-1">' 
+							     . $zeile['AuftraggeberEmpfaenger'] 
+							     . '</p>';
+							
+							
+							# Verwendungszweck
+							if (strlen($strSuchbegriff_aus_POST) >= $numMinimaleAnzahlZeichen) { 
+								# Für den Suchwort/Textmarker wird das Suchwort um 
+								# die TAGs <mark> und </mark> ergänzt. Hierfür eignet
+								# sich ein regulärer Ausdruck 
+								$strSuchbegriff_RegEXE = '/(\b'.$strSuchbegriff_aus_POST.'|\B'.$strSuchbegriff_aus_POST.')/ui';
+								$substitution = '<mark>$1</mark>';
+								$zeile['Verwendungszweck'] = preg_replace($strSuchbegriff_RegEXE, 
+																				$substitution, 
+																				$zeile['Verwendungszweck']);
+							}
 							echo '<p class="font-weight-light mb-1">' 
 							     . $zeile['Verwendungszweck'] 
 							     . '</p>';
-							/*
-							echo htmlspecialchars(
-							$zeile['Verwendungszweck'],
-							ENT_QUOTES | ENT_HTML5 | ENT_DISALLOWED | ENT_SUBSTITUTE,
-							'UTF-8'
-							);
-							*/
 						echo '</td>';
 						
 						# Spalte 4: Soll

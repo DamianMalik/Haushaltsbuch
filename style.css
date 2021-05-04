@@ -27,3 +27,8 @@ background-color: #dee2e6;
 table { table-layout: fixed; }
 table th, table td { overflow: hidden; }
 
+/* Anpassung der Hintergrundfarbe von <mark> sowie Verkleinerung Abstand */
+.mark, mark {
+    padding: .1em;
+    background-color: #ffc107;
+}
