@@ -15,11 +15,13 @@
                 <a class="nav-link" 
                    href="index.php">Home <span class="sr-only">(current)</span></a>
             </li>
+            <?php
+            /* Der Menüpunkt "Filter" wird herausgenommen, siehe #10
             <li class="nav-item">
                 <a class="nav-link" 
                    href="import-01.php">CSV-Import</a>
             </li>
-            <?php
+            
             /* Der Menüpunkt "Filter" wird herausgenommen, siehe #13
             <li class="nav-item">
                 <!-- <a class="nav-link disabled" href="#">Filter</a> -->

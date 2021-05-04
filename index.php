@@ -100,7 +100,13 @@
 			</tbody>
 		</table>
 	</div>
-	
+  <hr>
+  <?php
+  # Button zum Upload anzeigen
+  ?>
+  <a class="btn btn-info float-right font-Bitter" href="/import-01.php" role="button">CSV Import</a>
+  
+  
 	<!-- Optional JavaScript -->
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" 
