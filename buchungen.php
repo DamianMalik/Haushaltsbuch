@@ -169,7 +169,9 @@ $DBabfrage = "SELECT CONCAT(b.`Bankname`, ' ', b.`Inhaber`, ' ', b.`Kontoname`) 
 			}
 $DBabfrage .= $sqlAND; 
 if ($strSuchbegriff_SQL != '') {
-	$DBabfrage .= "	AND   ( a.`Verwendungszweck` LIKE '" 
+	# die REPLACE Anweisung bewirkt, dass Datensätze mit zufälligen
+	# Leerzeichen innerhalb des Suchbegriffs ebenfalls ausgegeben werden
+	$DBabfrage .= "	AND   ( REPLACE(a.`Verwendungszweck`, ' ', '') LIKE '" 
 							. $strSuchbegriff_SQL 
 							. "' OR    a.`AuftraggeberEmpfaenger` LIKE '" 
 							. $strSuchbegriff_SQL . "' )";
@@ -408,9 +410,9 @@ $DBausgabe = $pdo->query($DBabfrage);
 							echo date('d.m.Y', strtotime($zeile['Buchungsdatum'])); 
 						echo '</td>';
 						
-						# Spalte 3: Auftraggeber / Empfänger und Verwendungszweck
+						# Spalte 3: Buchungstyp / Auftraggeber+Empfänger / Verwendungszweck
 						echo '<td>';
-							# Verwendungszweck
+							# Buchungstyp
 							if ($zeile['Betrag'] < 0) {
 								echo '<div><span class="badge badge-pill badge-danger mb-1">'
 									. $zeile['Buchungstyp']
@@ -421,6 +423,7 @@ $DBausgabe = $pdo->query($DBabfrage);
 									. '</span></div>'; 
 							}
 							
+							# Auftraggeber / Empfänger
 							if (strlen($strSuchbegriff_aus_POST) >= $numMinimaleAnzahlZeichen) { 
 								# Für den Suchwort/Textmarker wird das Suchwort um 
 								# die TAGs <mark> und </mark> ergänzt. Hierfür eignet
@@ -449,8 +452,25 @@ $DBausgabe = $pdo->query($DBabfrage);
 								# Für den Suchwort/Textmarker wird das Suchwort um 
 								# die TAGs <mark> und </mark> ergänzt. Hierfür eignet
 								# sich ein regulärer Ausdruck 
-								$strSuchbegriff_RegEXE = '/(\b'.$strSuchbegriff_aus_POST.'|\B'.$strSuchbegriff_aus_POST.')/ui';
-								$substitution = '<mark>$1</mark>';
+								
+								# In den Suchstring nach jedem Buchstaben ein \s* einfügen
+								$strSuchbegriff_RegEXE = chunk_split($strSuchbegriff_aus_POST, 1, '\s*');
+								
+								# Das letzte "\s*" am Ende wieder herausfiltern
+								$strSuchbegriff_RegEXE = rtrim($strSuchbegriff_RegEXE, '\s*');
+								
+								# ein Slash und Klammerauf am Beginn einfügen
+								$strSuchbegriff_RegEXE = "/(" . $strSuchbegriff_RegEXE;
+								
+								# eine Klammerzu am Ende einfügen
+								$strSuchbegriff_RegEXE = $strSuchbegriff_RegEXE . ")"; 
+								
+								# RegEx-Suchoptionen ans Ende dranhängen (das "g" für "Global" ist 
+								# im preg_replace standardmäßig enthalten) 
+								$strSuchbegriff_RegEXE .= "/ui";
+								
+								# RegExe anwenden
+								$substitution = '<mark>$0</mark>';
 								$zeile['Verwendungszweck'] = preg_replace($strSuchbegriff_RegEXE, 
 																				$substitution, 
 																				$zeile['Verwendungszweck']);
