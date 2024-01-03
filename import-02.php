@@ -7,10 +7,9 @@
 		  content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" 
-		  href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" 
-		  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" 
-		  crossorigin="anonymous">
+	<?php 
+	include 'bootstrap-head.php';
+	?>
 
 
 	<!-- Zusätzliches CSS -->
@@ -50,7 +49,7 @@
 		}
 	} else {
 		echo '<div class="container-fluid">'; 
-			echo '<span class="badge badge-warning">Fehler</span> '; 
+			echo '<span class="badge bg-warning">Fehler</span> '; 
 			echo 'Es wurde keine Datei hochgeladen';
 		echo '</div>'; 
 		exit;
@@ -72,13 +71,17 @@
 	$strMusterTyp01 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Betrag;Währung;Saldo;Währung";
 	$strMusterTyp02 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 	$strMusterTyp03 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Kategorie;Verwendungszweck;Saldo;Währung;Betrag;Währung";
+	$strMusterTyp04 = "Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Notiz;Verwendungszweck;Saldo;Währung;Betrag;Währung";
 	$strMusterTyp90 = '﻿"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
-	
+	$strMusterTyp91 = '﻿"Datum";Uhrzeit;Zeitzone;Name;Typ;Status;Währung;Brutto;Gebühr;Netto;Absender E-Mail-Adresse;Empfänger E-Mail-Adresse;Transaktionscode;Lieferadresse;Adress-Status;Artikelbezeichnung;Artikelnummer;Versand- und Bearbeitungsgebühr;Versicherungsbetrag;Umsatzsteuer;Option 1 Name;Option 1 Wert;Option 2 Name;Option 2 Wert;Zugehöriger Transaktionscode;Rechnungsnummer;Zollnummer;Anzahl;Empfangsnummer;Guthaben;Adresszeile 1;Adresszusatz;Ort;Bundesland;PLZ;Land;Telefon;Betreff;Hinweis;Ländervorwahl;Auswirkung auf Guthaben';
+	                   "Datum","Uhrzeit","Zeitzone","Beschreibung","Währung","Brutto","Entgelt","Netto","Guthaben","Transaktionscode","Absender E-Mail-Adresse","Name","Name der Bank","Bankkonto","Versand- und Bearbeitungsgebühr","Umsatzsteuer","Rechnungsnummer","Zugehöriger Transaktionscode"
+	                   
 	
 	# Definiere Array
 	$arrZeile =  array();
 	$arrCSVDaten = array();
 	$numFeldanzahl = 0;
+	$arrCSVZeile = array();
 	
 	# **********************************************************
 	# ***                Prüfung CSV Bank                    ***
@@ -92,7 +95,6 @@
 			
 			# Zähle Felder in der Zeile
 			$numFeldanzahl = count($arrZeile);
-			
 			
 			if ($numFeldanzahl == 2 ) {
 				if ($arrZeile[0] == 'Konto') {
@@ -143,12 +145,20 @@
 					# Break beendet nicht das IF, sondern die While-Schleife
 					# break;
 				}
+				if ( $strZusammensetzung == $strMusterTyp04) {
+					$strCSV_Quelle = "ING v4";
+					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
+					# Break beendet nicht das IF, sondern die While-Schleife
+					# break;
+				}
 				
 				# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
 				# Ausnahme: Überschrift-Zeilen werden übersprungen 
 				if ( $strZusammensetzung != $strMusterTyp01 
 				     AND $strZusammensetzung != $strMusterTyp02 
-				     AND $strZusammensetzung != $strMusterTyp03) {
+				     AND $strZusammensetzung != $strMusterTyp03
+				     AND $strZusammensetzung != $strMusterTyp04
+				     ) {
 					$arrCSVDaten[] = $arrZeile;
 				}
 			}
@@ -188,15 +198,18 @@
 				if ( $arrZeile[40] == 'Auswirkung auf Guthaben' ) {
 					$arrCSVPruefung[2][2] = 1; // CSV wird als Valide deklariert
 				} 
-			}
-			
-			# Die Arrays-Elemente werden zu einem String zusammengesetzt
-			$strZusammensetzung = implode(";",$arrZeile); 
-			
-			# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
-			# Ausnahme: Überschrift-Zeilen werden übersprungen 
-			if ( $strZusammensetzung != $strMusterTyp90 ) {
-				$arrCSVDaten[] = $arrZeile;
+				
+				# Die Arrays-Elemente werden zu einem String zusammengesetzt
+				$strZusammensetzung = implode(";",$arrZeile); 
+				
+				# Datenzeilen werden in das Array `arrCSVDaten` übernommen.
+				# Ausnahme: Überschrift-Zeilen werden übersprungen 
+				if ( $strZusammensetzung != $strMusterTyp90 
+					AND $strZusammensetzung != $strMusterTyp91 
+					) {
+					$arrCSVDaten[] = $arrZeile;
+				}
+				
 			}
 		} // Ende der While-Schleife
 		
@@ -277,225 +290,232 @@
 	?>
 	<!-- <div class="container-fluid"> -->
 	<div class="container">
-		<!-- <div class="pt-3"> -->
 		<h1 class="pt-3 pb-4">Prüfung CSV-Datei</h1>
-		<div class="card-deck mb-5 font-Bitter">
+		
+		
+		<div class="row row-cols-3 mb-5 font-Bitter">
 		
 			<!-- Karte 1 - CSV Technische Prüfung -->
-			<div class="card" style="width: 18rem;">
-				<div class="card-header h4 text-white bg-dark">CSV Technische Prüfung</div>
-				<ul class="list-group list-group-flush bg-light">
-				<?php
-					
-					echo '<li class="list-group-item">';
-						echo '<span class="badge badge-secondary">Dateiname</span>' . '<br>'; 
-						echo $Dateiname;
-					echo '</li>';
-					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-secondary">Temporäre Datei</span>' . '<br>'; 
-							echo $tmpfile;
+			<div class="col">
+				<div class="card">
+					<div class="card-header h4 text-white bg-dark">CSV Technische Prüfung</div>
+					<ul class="list-group list-group-flush bg-light">
+					<?php
+						
+						echo '<li class="list-group-item">';
+							echo '<span class="badge bg-secondary">Dateiname</span>' . '<br>'; 
+							echo $Dateiname;
 						echo '</li>';
-					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-secondary">Größe</span>' . '<br>'; 
-							echo  number_format($size, 0, ',', '.') 
-								. ' Byte (' 
-								. number_format(round($size / 1024, 2), 0, ',', '.')
-								. ' kB)';
-						echo '</li>';
-					echo '<li class="list-group-item">';
-							if ( $strDateityp == 'text/csv') {
-								echo '<span class="badge badge-success">Dateityp</span>' . '<br>'; 
-							} else {
-								echo '<span class="badge badge-danger">Dateityp</span>' . '<br>'; 
-							}
-							echo $strDateityp;
-						echo '</li>';
-					echo '<li class="list-group-item">';
-							if ( $uploaderr == 0 ) {
-								echo '<span class="badge badge-success">Fehler</span>' . '<br>'; 
-							} else {
-								echo '<span class="badge badge-danger">Fehler</span>' . '<br>'; 
-							}
-							echo $uploaderr;
-						echo '</li>';
-					echo '<li class="list-group-item">';
-							if ( $strDateityp == 'text/csv' AND $uploaderr == 0 ) {
-								echo '<div class="alert alert-success" role="alert">Technische Prüfung in Ordnung</div>';
-								$arrCSVPruefung[1][0] = 1; // 1=OK; 9=Fehler
-							} else {
-								echo '<div class="alert alert-danger" role="alert">Technische Prüfung fehlerhaft</div>';
-								$arrCSVPruefung[1][0] = 9; // 1=OK; 9=Fehler
-							}
-						echo '</li>';
-				?>
-				</ul>
+						echo '<li class="list-group-item">';
+								echo '<span class="badge bg-secondary">Temporäre Datei</span>' . '<br>'; 
+								echo $tmpfile;
+							echo '</li>';
+						echo '<li class="list-group-item">';
+								echo '<span class="badge bg-secondary">Größe</span>' . '<br>'; 
+								echo  number_format($size, 0, ',', '.') 
+									. ' Byte (' 
+									. number_format(round($size / 1024, 2), 0, ',', '.')
+									. ' kB)';
+							echo '</li>';
+						echo '<li class="list-group-item">';
+								if ( $strDateityp == 'text/csv') {
+									echo '<span class="badge bg-success">Dateityp</span>' . '<br>'; 
+								} else {
+									echo '<span class="badge bg-danger">Dateityp</span>' . '<br>'; 
+								}
+								echo $strDateityp;
+							echo '</li>';
+						echo '<li class="list-group-item">';
+								if ( $uploaderr == 0 ) {
+									echo '<span class="badge bg-success">Fehler</span>' . '<br>'; 
+								} else {
+									echo '<span class="badge bg-danger">Fehler</span>' . '<br>'; 
+								}
+								echo $uploaderr;
+							echo '</li>';
+						echo '<li class="list-group-item">';
+								if ( $strDateityp == 'text/csv' AND $uploaderr == 0 ) {
+									echo '<div class="alert alert-success" role="alert">Technische Prüfung in Ordnung</div>';
+									$arrCSVPruefung[1][0] = 1; // 1=OK; 9=Fehler
+								} else {
+									echo '<div class="alert alert-danger" role="alert">Technische Prüfung fehlerhaft</div>';
+									$arrCSVPruefung[1][0] = 9; // 1=OK; 9=Fehler
+								}
+							echo '</li>';
+					?>
+					</ul>
+				</div>
 			</div>
 			<!-- Karte 2 - CSV Inhaltliche Prüfung -->
-			<div class="card" style="width: 18rem;">
-				<div class="card-header h4 text-white bg-dark">CSV Inhaltliche Prüfung</div>
-				<ul class="list-group list-group-flush bg-light">
-					<?php
-					echo '<li class="list-group-item">';
-						if ($strCSV_Quelle == 'unbekannt')  {
-							echo '<span class="badge badge-danger">CSV-Quelle</span>' . '<br>'; 
-							echo $strCSV_Quelle . "<br>"; 
-							$arrCSVPruefung[2][1] = 9; // 1=OK; 9=Fehler
-						} else {
-							echo '<span class="badge badge-success">CSV-Quelle</span>' 
-								.'<br>'; 
-							echo $strBank_ausCSV . ' (' . $strCSV_Quelle . ")" . "<br>";
-							$arrCSVPruefung[2][1] = 1; // 1=OK; 9=Fehler
-						}
-						echo '</li>';
-					echo '<li class="list-group-item">';
-						if ($arrCSVPruefung[2][2] != 9)  {
-							echo '<span class="badge badge-success">CSV-Inhalt</span>' . '<br>'; 
-							echo "CSV Daten valide" . "<br>";
-						} else {
-							echo '<span class="badge badge-danger">CSV-Inhalt</span>' .'<br>'; 
-							echo "CSV Daten nicht valide oder keine Daten in CSV vorhanden" . "<br>";
-						}
-						echo '</li>';
-					echo '<li class="list-group-item">';
-						if ( $strInhaber_ausCSV != 'unbekannt') {
-							echo '<span class="badge badge-success">Kontoinhaber</span>' . '<br>'; 
-							$arrCSVPruefung[2][3] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-danger">Kontoinhaber</span>' . '<br>'; 
-							$arrCSVPruefung[2][3] = 9; // 1=OK; 9=Fehler
-						}
-							echo $strInhaber_ausCSV . '<br>';
-						echo '</li>';
-					echo '<li class="list-group-item">';
-						if ( $strKontonummer_ausCSV != 'unbekannt' ) {
-							echo '<span class="badge badge-success">Kontonummer</span>' . '<br>'; 
-							$arrCSVPruefung[2][4] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
-							$arrCSVPruefung[2][4] = 9; // 1=OK; 9=Fehler
-						}
-						echo $strKontonummer_ausCSV . '<br>';
-					echo '</li>';
-					echo '<li class="list-group-item">';
-						if ( $strKontotyp_ausCSV != 'unbekannt' ) {
-							echo '<span class="badge badge-success">Kontotyp</span>' . '<br>'; 
-							$arrCSVPruefung[2][5] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-warning">Kontotyp</span>' . '<br>'; 
-							$arrCSVPruefung[2][5] = 2; // 1=OK; 2=Tolerabel
-						}
-						echo $strKontotyp_ausCSV . '<br>';
-						echo '</li>';
-					
-					
-					echo '<li class="list-group-item">';
-							if (   $arrCSVPruefung[2][1] == 9 
-								OR $arrCSVPruefung[2][2] == 9 
-								OR $arrCSVPruefung[2][3] == 9 
-								OR $arrCSVPruefung[2][4] == 9 
-								OR $arrCSVPruefung[2][5] == 9 ) {
-								echo '<div class="alert alert-danger" role="alert">Inhaltliche Prüfung fehlerhaft</div>';
-								$arrCSVPruefung[2][0] = 9; // 1=OK; 9=Fehler
+			<div class="col">
+				<div class="card">
+					<div class="card-header h4 text-white bg-dark">CSV Inhaltliche Prüfung</div>
+					<ul class="list-group list-group-flush bg-light">
+						<?php
+						echo '<li class="list-group-item">';
+							if ($strCSV_Quelle == 'unbekannt')  {
+								echo '<span class="badge bg-danger">CSV-Quelle</span>' . '<br>'; 
+								echo $strCSV_Quelle . "<br>"; 
+								$arrCSVPruefung[2][1] = 9; // 1=OK; 9=Fehler
 							} else {
-								echo '<div class="alert alert-success" role="alert">Inhaltliche Prüfung in Ordnung</div>';
-								$arrCSVPruefung[2][0] = 1; // 1=OK; 9=Fehler
+								echo '<span class="badge bg-success">CSV-Quelle</span>' 
+									.'<br>'; 
+								echo $strBank_ausCSV . ' (' . $strCSV_Quelle . ")" . "<br>";
+								$arrCSVPruefung[2][1] = 1; // 1=OK; 9=Fehler
 							}
+							echo '</li>';
+						echo '<li class="list-group-item">';
+							if ($arrCSVPruefung[2][2] != 9)  {
+								echo '<span class="badge bg-success">CSV-Inhalt</span>' . '<br>'; 
+								echo "CSV Daten valide" . "<br>";
+							} else {
+								echo '<span class="badge bg-danger">CSV-Inhalt</span>' .'<br>'; 
+								echo "CSV Daten nicht valide oder keine Daten in CSV vorhanden" . "<br>";
+							}
+							echo '</li>';
+						echo '<li class="list-group-item">';
+							if ( $strInhaber_ausCSV != 'unbekannt') {
+								echo '<span class="badge bg-success">Kontoinhaber</span>' . '<br>'; 
+								$arrCSVPruefung[2][3] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-danger">Kontoinhaber</span>' . '<br>'; 
+								$arrCSVPruefung[2][3] = 9; // 1=OK; 9=Fehler
+							}
+								echo $strInhaber_ausCSV . '<br>';
+							echo '</li>';
+						echo '<li class="list-group-item">';
+							if ( $strKontonummer_ausCSV != 'unbekannt' ) {
+								echo '<span class="badge bg-success">Kontonummer</span>' . '<br>'; 
+								$arrCSVPruefung[2][4] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-danger">Kontonummer</span>' . '<br>'; 
+								$arrCSVPruefung[2][4] = 9; // 1=OK; 9=Fehler
+							}
+							echo $strKontonummer_ausCSV . '<br>';
 						echo '</li>';
-				?>
-				</ul>
+						echo '<li class="list-group-item">';
+							if ( $strKontotyp_ausCSV != 'unbekannt' ) {
+								echo '<span class="badge bg-success">Kontotyp</span>' . '<br>'; 
+								$arrCSVPruefung[2][5] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-warning">Kontotyp</span>' . '<br>'; 
+								$arrCSVPruefung[2][5] = 2; // 1=OK; 2=Tolerabel
+							}
+							echo $strKontotyp_ausCSV . '<br>';
+							echo '</li>';
+						
+						
+						echo '<li class="list-group-item">';
+								if (   $arrCSVPruefung[2][1] == 9 
+									OR $arrCSVPruefung[2][2] == 9 
+									OR $arrCSVPruefung[2][3] == 9 
+									OR $arrCSVPruefung[2][4] == 9 
+									OR $arrCSVPruefung[2][5] == 9 ) {
+									echo '<div class="alert alert-danger" role="alert">Inhaltliche Prüfung fehlerhaft</div>';
+									$arrCSVPruefung[2][0] = 9; // 1=OK; 9=Fehler
+								} else {
+									echo '<div class="alert alert-success" role="alert">Inhaltliche Prüfung in Ordnung</div>';
+									$arrCSVPruefung[2][0] = 1; // 1=OK; 9=Fehler
+								}
+							echo '</li>';
+					?>
+					</ul>
+				</div>
 			</div> 
 			<!-- Karte 3 - Datenbank-Prüfung -->
-			<div class="card" style="width: 18rem;">
-				<div class="card-header h4 text-white bg-dark">Prüfung Datenbank</div>
-				<ul class="list-group list-group-flush bg-light">
-				<?php
-					echo '<li class="list-group-item">';
-						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Bank-Name aus DB</span>' . '<br>'; 
-							echo $strBank_ausDB . '<br>';
-							$arrCSVPruefung[3][1] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-warning">Bank-Name</span>' . '<br>'; 
-							echo 'Bank wird neu angelegt.';
-							$arrCSVPruefung[3][1] = 2; // 1=OK; 2=Tolerabel
-						}
-						echo '</li>';
-					
-					echo '<li class="list-group-item">';
-						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Bank-ID</span>' . '<br>'; 
-							echo $intID_ausDB . '<br>';
-							$arrCSVPruefung[3][2] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-warning">Datenbank-ID</span>' . '<br>'; 
-							echo 'ID wird neu angelegt.';
-							$arrCSVPruefung[3][2] = 2; // 1=OK; 2=Tolerabel
-						}
-						echo '</li>';
-					
-					echo '<li class="list-group-item">';
-						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Kontoinhaber aus DB</span>' . '<br>'; 
-							echo $strInhaber_ausDB . '<br>';
-							$arrCSVPruefung[3][3] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-danger">Kontoinhaber</span>' . '<br>'; 
-							echo 'Kontoinhaber wird neu angelegt.';
-							$arrCSVPruefung[3][3] = 9; // 1=OK; 9=Fehler
-						}
-						echo '</li>';
-					echo '<li class="list-group-item">';
-						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Kontonummer aus DB</span>' . '<br>'; 
-							echo $strKontonummer_ausDB . '<br>';
-							$arrCSVPruefung[3][4] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-danger">Kontonummer</span>' . '<br>'; 
-							echo 'Kontonummer wird neu angelegt.';
-							$arrCSVPruefung[3][4] = 9; // 1=OK; 9=Fehler
-						}
-						echo '</li>';
-					
-					echo '<li class="list-group-item">';
-						if ( $intID_ausDB != -1 ) {
-							echo '<span class="badge badge-success">Kontoname aus DB</span>' . '<br>'; 
-							echo $strKontoname_ausDB . '<br>';
-							$arrCSVPruefung[3][5] = 1; // 1=OK; 2=Tolerabel
-						} else {
-							echo '<span class="badge badge-warning">Kontoname</span>' . '<br>'; 
-							echo 'Kontoname wird neu angelegt.';
-							$arrCSVPruefung[3][5] = 2; // 1=OK; 2=Tolerabel
-						}
-						echo '</li>';
-					
-					echo '<li class="list-group-item">';
-							echo '<span class="badge badge-secondary">Upload Nummer</span>' . '<br>'; 
-							if ($Uploadnummer_ausDB == '999') {
-								echo '1000' . '<br>';
+			<div class="col">
+				<div class="card">
+					<div class="card-header h4 text-white bg-dark">Prüfung Datenbank</div>
+					<ul class="list-group list-group-flush bg-light">
+					<?php
+						echo '<li class="list-group-item">';
+							if ( $intID_ausDB != -1 ) {
+								echo '<span class="badge bg-success">Bank-Name aus DB</span>' . '<br>'; 
+								echo $strBank_ausDB . '<br>';
+								$arrCSVPruefung[3][1] = 1; // 1=OK; 2=Tolerabel
 							} else {
-								echo $Uploadnummer_neu;
+								echo '<span class="badge bg-warning">Bank-Name</span>' . '<br>'; 
+								echo 'Bank wird neu angelegt.';
+								$arrCSVPruefung[3][1] = 2; // 1=OK; 2=Tolerabel
 							}
-						echo '</li>';
-					
-					
-					echo '<li class="list-group-item">';
-							if (   $arrCSVPruefung[3][1] == 9 OR $arrCSVPruefung[3][2] == 9 OR $arrCSVPruefung[3][3] == 9 
-							    OR $arrCSVPruefung[3][4] == 9 OR $arrCSVPruefung[3][5] == 9) {
-								echo '<div class="alert alert-danger" role="alert">Konto wird nicht in Datenbank angelegt.</div>';
-								$arrCSVPruefung[3][0] = 9; // 1=OK; 9=Fehler
-							} elseif (   $arrCSVPruefung[3][1] == 2 OR $arrCSVPruefung[3][2] == 2 OR $arrCSVPruefung[3][3] == 2 
-							    OR $arrCSVPruefung[3][4] == 2 OR $arrCSVPruefung[3][5] == 2) {
-								echo '<div class="alert alert-warning" role="alert">Konto wird neu in Datenbank angelegt.</div>';
-								$arrCSVPruefung[3][0] = 2; // 1=OK; 2=Tolerabel
-							} else {
-								echo '<div class="alert alert-success" role="alert">Prüfung Datenbank in Ordnung</div>';
-								$arrCSVPruefung[3][0] = 1; // 1=OK; 2=Tolerabel
-							}
-						echo '</li>';
+							echo '</li>';
 						
-				?>
-				</ul>
-			</div> 
+						echo '<li class="list-group-item">';
+							if ( $intID_ausDB != -1 ) {
+								echo '<span class="badge bg-success">Bank-ID</span>' . '<br>'; 
+								echo $intID_ausDB . '<br>';
+								$arrCSVPruefung[3][2] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-warning">Datenbank-ID</span>' . '<br>'; 
+								echo 'ID wird neu angelegt.';
+								$arrCSVPruefung[3][2] = 2; // 1=OK; 2=Tolerabel
+							}
+							echo '</li>';
+						
+						echo '<li class="list-group-item">';
+							if ( $intID_ausDB != -1 ) {
+								echo '<span class="badge bg-success">Kontoinhaber aus DB</span>' . '<br>'; 
+								echo $strInhaber_ausDB . '<br>';
+								$arrCSVPruefung[3][3] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-danger">Kontoinhaber</span>' . '<br>'; 
+								echo 'Kontoinhaber wird neu angelegt.';
+								$arrCSVPruefung[3][3] = 9; // 1=OK; 9=Fehler
+							}
+							echo '</li>';
+						echo '<li class="list-group-item">';
+							if ( $intID_ausDB != -1 ) {
+								echo '<span class="badge bg-success">Kontonummer aus DB</span>' . '<br>'; 
+								echo $strKontonummer_ausDB . '<br>';
+								$arrCSVPruefung[3][4] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-danger">Kontonummer</span>' . '<br>'; 
+								echo 'Kontonummer wird neu angelegt.';
+								$arrCSVPruefung[3][4] = 9; // 1=OK; 9=Fehler
+							}
+							echo '</li>';
+						
+						echo '<li class="list-group-item">';
+							if ( $intID_ausDB != -1 ) {
+								echo '<span class="badge bg-success">Kontoname aus DB</span>' . '<br>'; 
+								echo $strKontoname_ausDB . '<br>';
+								$arrCSVPruefung[3][5] = 1; // 1=OK; 2=Tolerabel
+							} else {
+								echo '<span class="badge bg-warning">Kontoname</span>' . '<br>'; 
+								echo 'Kontoname wird neu angelegt.';
+								$arrCSVPruefung[3][5] = 2; // 1=OK; 2=Tolerabel
+							}
+							echo '</li>';
+						
+						echo '<li class="list-group-item">';
+								echo '<span class="badge bg-secondary">Upload Nummer</span>' . '<br>'; 
+								if ($Uploadnummer_ausDB == '999') {
+									echo '1000' . '<br>';
+								} else {
+									echo $Uploadnummer_neu;
+								}
+							echo '</li>';
+						
+						
+						echo '<li class="list-group-item">';
+								if (   $arrCSVPruefung[3][1] == 9 OR $arrCSVPruefung[3][2] == 9 OR $arrCSVPruefung[3][3] == 9 
+									OR $arrCSVPruefung[3][4] == 9 OR $arrCSVPruefung[3][5] == 9) {
+									echo '<div class="alert alert-danger" role="alert">Konto wird nicht in Datenbank angelegt.</div>';
+									$arrCSVPruefung[3][0] = 9; // 1=OK; 9=Fehler
+								} elseif (   $arrCSVPruefung[3][1] == 2 OR $arrCSVPruefung[3][2] == 2 OR $arrCSVPruefung[3][3] == 2 
+									OR $arrCSVPruefung[3][4] == 2 OR $arrCSVPruefung[3][5] == 2) {
+									echo '<div class="alert alert-warning" role="alert">Konto wird neu in Datenbank angelegt.</div>';
+									$arrCSVPruefung[3][0] = 2; // 1=OK; 2=Tolerabel
+								} else {
+									echo '<div class="alert alert-success" role="alert">Prüfung Datenbank in Ordnung</div>';
+									$arrCSVPruefung[3][0] = 1; // 1=OK; 2=Tolerabel
+								}
+							echo '</li>';
+							
+					?>
+					</ul>
+				</div>
+			</div>
 			
 			
 		</div>
@@ -532,7 +552,8 @@
 		# ***                     ING-DiBa                       ***
 		# ********************************************************** 
 		if ( $strBank_ausCSV == "ING-DiBa" ) {
-			foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
+			foreach ( $arrCSVDaten as $arrCSVZeile ) {
+			# foreach ( array_reverse($arrCSVDaten) as $arrCSVZeile ) {
 				$Datenbankinsert  = "INSERT INTO `Buchungen` "
 							   ."(`Uploadnummer`, `Datensatznummer`, 
 								  `BankID`, `Buchungsdatum`, `Valuta`, 
@@ -593,7 +614,7 @@
 				if ($strCSV_Quelle == "ING v1" || $strCSV_Quelle == "ING v2") {
 					$arrCSVZeile[4] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[4]) ); 
 				}
-				if ($strCSV_Quelle == "ING v3" ) {
+				if ($strCSV_Quelle == "ING v3" || $strCSV_Quelle == "ING v4") {
 					$arrCSVZeile[5] = trim( preg_replace('/\s+/', ' ', $arrCSVZeile[5]) ); 
 				}
 				
@@ -612,23 +633,43 @@
 					$arrCSVZeile[6] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[6]));
 					$arrCSVZeile[8] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[8]));
 				}
+				if ($strCSV_Quelle == "ING v4") {
+					$arrCSVZeile[6] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[6]));
+					$arrCSVZeile[8] = str_replace(',', '.', str_replace('.', '', $arrCSVZeile[8]));
+				}
 				
 				
 				# **********************************************************
 				# ***       Datensätze für Import testweise ausgeben     ***
 				# ********************************************************** 
+				
+				# echo "<b>Feldanzahl:</b> " . $numFeldanzahl . "<br>";
 				/*
 				echo "<b>Datensatz</b>"
+					. " | "
 					. $arrCSVZeile[0]
 					. " | "
 					. $arrCSVZeile[1]
 					. " | "
 					. $arrCSVZeile[2]
-				     . " | ";
+					. " | "
+					. $arrCSVZeile[3]
+					. " | "
+					. $arrCSVZeile[4]
+					. " | "
+					. $arrCSVZeile[5]
+					. " | "
+					. $arrCSVZeile[6]
+					. " | "
+					. $arrCSVZeile[7]
+					. " | "
+					. $arrCSVZeile[8]
+					. " | ";
+				echo "<br>"; 
 				*/
 				
 				# **********************************************************
-				# ***         Datensätze in DB schreiben                 ***
+				# ***         Datensätze in DB schreiben  (ING-DiBa)     ***
 				# ********************************************************** 
 				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
@@ -661,6 +702,20 @@
 					$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
 				}
 				if ($strCSV_Quelle == "ING v3") {
+					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
+					$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
+					$insCmd->bindParam( ':Buchungsdatum', $arrCSVZeile[0], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Valuta', $arrCSVZeile[1], PDO::PARAM_STR );
+					$insCmd->bindParam( ':AuftraggeberEmpfaenger', $arrCSVZeile[2] );
+					$insCmd->bindParam( ':Buchungstyp', $arrCSVZeile[3], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Verwendungszweck', $arrCSVZeile[5], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Betrag', $arrCSVZeile[8], PDO::PARAM_INT );
+					$insCmd->bindParam( ':Waehrung', $arrCSVZeile[7], PDO::PARAM_STR );
+					$insCmd->bindParam( ':Saldo', $arrCSVZeile[6], PDO::PARAM_INT );
+					$insCmd->bindParam( ':CSV_Quelle', $strBank_ausCSV, PDO::PARAM_STR);
+				}
+				if ($strCSV_Quelle == "ING v4") {
 					$insCmd->bindParam( ':Uploadnummer', $Uploadnummer_neu, PDO::PARAM_INT );
 					$insCmd->bindParam( ':Datensatznummer', $Datensatznummer, PDO::PARAM_INT );
 					$insCmd->bindParam( ':BankID', $intID_ausDB, PDO::PARAM_INT );
@@ -851,7 +906,7 @@
 				
 				
 				# **********************************************************
-				# ***         Datensätze in DB schreiben                 ***
+				# ***         Datensätze in DB schreiben  (PayPal)       ***
 				# ********************************************************** 
 				
 				$insCmd = $pdo->prepare($Datenbankinsert); 
@@ -875,17 +930,11 @@
 		?>
 	</div>
 
-<!-- Optional JavaScript -->
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" 
-        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" 
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" 
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" 
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" 
-        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" 
-        crossorigin="anonymous"></script>
+
+	<?php
+	# Bootstrap 
+	include 'bootstrap-body.php';
+	?>
 
 </body>
 </html>
